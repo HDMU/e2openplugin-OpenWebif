@@ -132,12 +132,6 @@ def getAllInfo():
 		if (procmodel.startswith("optimuss") or procmodel.startswith("pingulux")):
 			brand = "Edision"
 			model = procmodel.replace("optimmuss", "Optimuss ").replace("plus", " Plus").replace(" os", " OS")
-	elif fileExists("/proc/stb/info/vumodel"):
-		brand = "Vu+"
-		f = open("/proc/stb/info/vumodel",'r')
-		procmodel = f.readline().strip()
-		f.close()
-		model = procmodel.title().replace("olose", "olo SE").replace("olo2se", "olo2 SE").replace("2", "²")
 	elif fileExists("/proc/stb/info/azmodel"):
 		brand = "AZBox"
 		f = open("/proc/stb/info/model",'r') # To-Do: Check if "model" is really correct ...
@@ -150,6 +144,12 @@ def getAllInfo():
 		procmodel = f.readline().strip()
 		f.close()
 		model = procmodel.upper().replace("GBQUAD", "Quad").replace("PLUS", " Plus")
+	elif fileExists("/proc/stb/info/vumodel"):
+		brand = "Vu+"
+		f = open("/proc/stb/info/vumodel",'r')
+		procmodel = f.readline().strip()
+		f.close()
+		model = procmodel.title().replace("olose", "olo SE").replace("olo2se", "olo2 SE").replace("2", "²")
 	elif fileExists("/proc/stb/info/boxtype"):
 		f = open("/proc/stb/info/boxtype",'r')
 		procmodel = f.readline().strip().lower()
