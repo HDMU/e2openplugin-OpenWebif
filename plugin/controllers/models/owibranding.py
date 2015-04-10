@@ -121,75 +121,37 @@ def getAllInfo():
 	model = "unknown"
 	procmodel = "unknown"
 	orgdream = 0
-	procazbox = "/proc/stb/info/azmodel"
-	procgb = "/proc/stb/info/gbmodel"
-	procvu = "/proc/stb/info/vumodel"
-	procdags = "/proc/stb/info/hwmodel"
-	procboxtype = "/proc/stb/info/boxtype"
-	procmodel = "/proc/stb/info/model"
-
 	if tpmloaded:
 		orgdream = tpm_check()
 	
-	if fileExists("/etc/.box"):
-		distro = "HDMU"
-		f = open("/etc/.box",'r')
-		tempmodel = f.readline().strip().lower()
-		f.close()
-		if tempmodel.startswith("ufs") or model.startswith("ufc"):
-			brand = "Kathrein"
-		elif tempmodel.startswith("spark"):
-			brand = "Fulan"
-		model = tempmodel
-		if tempmodel.startswith("et"):
-			brand = "Xtrend"
-			f = open(procboxtype,'r')
-		elif fileExists(procazbox):
-			brand = "AZBox"
-			f = open(procmodel,'r')
-		elif fileExists(procgb):
-			brand = "GigaBlue"
-			f = open(procgb,'r')
-			gb = f.readline().strip()
-			model = gb.upper().replace("GBQUAD", "Quad").replace("PLUS", " Plus")
-		elif fileExists(procvu) and tempmodel.startswith("vu") is True:
-			brand = "Vu+"
-			f = open(procvu,'r')
-			model = f.readline().strip().title().replace("olose", "olo SE").replace("olo2se", "olo2 SE").replace("2", "²")
-		else:
-			brand = "HDMU"
-			f = open("/etc/.box",'r')
-		procmodel = f.readline().strip()
-		f.close()
-	elif fileExists(procdags):
+	if fileExists("/proc/stb/info/hwmodel"):
 		brand = "DAGS"
-		f = open(procdags,'r')
+		f = open("/proc/stb/info/hwmodel",'r')
 		procmodel = f.readline().strip()
 		f.close()
 		if (procmodel.startswith("optimuss") or procmodel.startswith("pingulux")):
 			brand = "Edision"
 			model = procmodel.replace("optimmuss", "Optimuss ").replace("plus", " Plus").replace(" os", " OS")
-	elif fileExists(procvu):
+	elif fileExists("/proc/stb/info/vumodel"):
 		brand = "Vu+"
-		f = open(procvu,'r')
+		f = open("/proc/stb/info/vumodel",'r')
 		procmodel = f.readline().strip()
 		f.close()
-		model = procmodel.title().replace("olose", "olo SE").replace("olo2se", "olo2 SE").replace("2", "²")
-	elif fileExists(procazbox):
+		model = procmodel.title().replace("olose", "olo SE").replace("olo2se", "olo2 SE").replace("2", "�")
+	elif fileExists("/proc/stb/info/azmodel"):
 		brand = "AZBox"
-		f = open(procmodel,'r') # To-Do: Check if "model" is really correct ...
+		f = open("/proc/stb/info/model",'r') # To-Do: Check if "model" is really correct ...
 		procmodel = f.readline().strip()
 		f.close()
 		model = procmodel.lower()
-	elif fileExists(procgb):
+	elif fileExists("/proc/stb/info/gbmodel"):
 		brand = "GigaBlue"
-		f = open(procgb,'r')
+		f = open("/proc/stb/info/gbmodel",'r')
 		procmodel = f.readline().strip()
 		f.close()
 		model = procmodel.upper().replace("GBQUAD", "Quad").replace("PLUS", " Plus")
-	elif fileExists(procboxtype):
-		# boxtype exists on nearly every E2 box, if we have nothing better for detection we need to analyse its content
-		f = open(procboxtype,'r')
+	elif fileExists("/proc/stb/info/boxtype"):
+		f = open("/proc/stb/info/boxtype",'r')
 		procmodel = f.readline().strip().lower()
 		f.close()
 		if procmodel.startswith("et"):
@@ -243,8 +205,8 @@ def getAllInfo():
 		elif procmodel == "hd2400":
 			brand = "Mut@nt"
 			model = "hd2400"
-	elif fileExists(procmodel):
-		f = open(procmodel,'r')
+	elif fileExists("/proc/stb/info/model"):
+		f = open("/proc/stb/info/model",'r')
 		procmodel = f.readline().strip().lower()
 		f.close()
 		if procmodel in ("esi88", "sagemcom88", "nbox"):
@@ -270,6 +232,23 @@ def getAllInfo():
 			model = "DM8000"
 		else:
 			model = procmodel
+
+	if fileExists("/etc/.box"):
+		distro = "HDMU"
+		f = open("/etc/.box",'r')
+		tempmodel = f.readline().strip().lower()
+		if tempmodel.startswith("ufs") or model.startswith("ufc"):
+			brand = "Kathrein"
+			model = tempmodel.upcase()
+			procmodel = tempmodel
+		elif tempmodel.startswith("spark"):
+			brand = "Fulan"
+			model = tempmodel.title()
+			procmodel = tempmodel
+		elif tempmodel.startswith("xcombo"):
+			brand = "EVO"
+			model = "enfinityX combo plus"
+			procmodel = "vg2000"
 
 	type = procmodel
 	if type in ("et9000", "et9200", "et9500"):
@@ -347,7 +326,7 @@ def getAllInfo():
 		remote = "hd2400"
 	elif procmodel.startswith("ixuss"):
 		remote = procmodel.replace(" ", "")
-	elif procmodel == "xcombo":
+	elif procmodel == "vg2000":
 		remote = "xcombo"
 
 	info['remote'] = remote
