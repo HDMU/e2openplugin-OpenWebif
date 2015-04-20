@@ -123,7 +123,7 @@ def getAllInfo():
 	orgdream = 0
 	if tpmloaded:
 		orgdream = tpm_check()
-	
+
 	if fileExists("/proc/stb/info/hwmodel"):
 		brand = "DAGS"
 		f = open("/proc/stb/info/hwmodel",'r')
@@ -149,7 +149,7 @@ def getAllInfo():
 		f = open("/proc/stb/info/vumodel",'r')
 		procmodel = f.readline().strip()
 		f.close()
-		model = procmodel.title().replace("olose", "olo SE").replace("olo2se", "olo2 SE").replace("2", "²")
+		model = procmodel.title().replace("olose", "olo SE").replace("olo2se", "olo2 SE").replace("2", "Â²")
 	elif fileExists("/proc/stb/info/boxtype"):
 		f = open("/proc/stb/info/boxtype",'r')
 		procmodel = f.readline().strip().lower()
@@ -237,6 +237,7 @@ def getAllInfo():
 		distro = "HDMU"
 		f = open("/etc/.box",'r')
 		tempmodel = f.readline().strip().lower()
+		f.close()
 		if tempmodel.startswith("ufs") or model.startswith("ufc"):
 			brand = "Kathrein"
 			model = tempmodel.upcase()
@@ -249,6 +250,10 @@ def getAllInfo():
 			brand = "EVO"
 			model = "enfinityX combo plus"
 			procmodel = "vg2000"
+		elif tempmodel in ("atemio6000", "atemio6000"):
+			brand = "Atemio"
+			model = tempmodel
+			procmodel = tempmodel
 
 	type = procmodel
 	if type in ("et9000", "et9200", "et9500"):
@@ -328,6 +333,8 @@ def getAllInfo():
 		remote = procmodel.replace(" ", "")
 	elif procmodel == "vg2000":
 		remote = "xcombo"
+	elif procmodel.startswith("atemio"):
+		remote = "atemio"
 
 	info['remote'] = remote
 
