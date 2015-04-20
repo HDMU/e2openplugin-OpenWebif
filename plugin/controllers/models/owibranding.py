@@ -250,9 +250,12 @@ def getAllInfo():
 			brand = "EVO"
 			model = "enfinityX combo plus"
 			procmodel = "vg2000"
-		elif tempmodel in ("atemio6000", "atemio6000"):
+		elif tempmodel in ("atemio6000", "atemio6100"):
 			brand = "Atemio"
-			model = tempmodel
+			if tempmodel == "atemio6000":
+				model = "6000"
+			elif tempmodel == "atemio6100":
+				model = "6100"
 			procmodel = tempmodel
 
 	type = procmodel
