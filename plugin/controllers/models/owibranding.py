@@ -240,7 +240,7 @@ def getAllInfo():
 		f.close()
 		if tempmodel.startswith("ufs") or model.startswith("ufc"):
 			brand = "Kathrein"
-			model = tempmodel.upcase()
+			model = tempmodel.title()
 			procmodel = tempmodel
 		elif tempmodel.startswith("spark"):
 			brand = "Fulan"
