@@ -259,10 +259,14 @@ def getAllInfo():
 			else:
 				model = "Nemesis"
 			procmodel = tempmodel
-		elif tempmodel.startswith("xpeedlx"):
+		elif tempmodel in ("xpeedlx", "xpeedlx3"):
 			brand = "Golden Media"
 			model = tempmodel
 			procmodel = "xpeedlx"
+		elif tempmodel.startswith("xpeedlxc"):
+			brand = "Golden Interstar"
+			model = tempmodel
+			procmodel = "xpeedlxc"
 
 	type = procmodel
 	if type in ("et9000", "et9100", "et9200", "et9500"):
