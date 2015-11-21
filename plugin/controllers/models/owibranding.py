@@ -259,14 +259,14 @@ def getAllInfo():
 			else:
 				model = "Nemesis"
 			procmodel = tempmodel
-		elif tempmodel in ("xpeedlx", "xpeedlx3"):
-			brand = "Golden Media"
-			model = tempmodel
-			procmodel = "xpeedlx"
 		elif tempmodel.startswith("xpeedlxc"):
 			brand = "Golden Interstar"
 			model = tempmodel
 			procmodel = "xpeedlxc"
+		elif tempmodel in ("xpeedlx", "xpeedlx3"):
+			brand = "Golden Media"
+			model = tempmodel
+			procmodel = "xpeedlx"
 
 	type = procmodel
 	if type in ("et9000", "et9100", "et9200", "et9500"):
@@ -338,8 +338,10 @@ def getAllInfo():
 		remote = "spark"
 	elif procmodel == "xp1000":
 		remote = "xp1000"
-	elif procmodel.startswith("xpeedlx"):
+	elif procmodel in ("xpeedlx", "xpeedlx3"):
 		remote = "xpeedlx"
+	elif procmodel.startswith("xpeedlxc"):
+		remote = "xpeedlxc"
 	elif procmodel in ("nbox", "sagemcom88", "esi88", "adb2850", "adb2849", "dsi87"):
 		remote = "nbox"
 	elif procmodel == "hd2400":
