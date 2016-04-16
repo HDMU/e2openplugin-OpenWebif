@@ -250,6 +250,13 @@ def getAllInfo():
 			brand = "EVO"
 			model = "enfinityX combo plus"
 			procmodel = "vg2000"
+		elif tempmodel.startswith("sf"):
+			brand = "Octagon"
+			model = tempmodel
+			if tempmodel == "sf3038":
+				procmodel = "6000"
+			elif tempmodel == "sf108":
+				procmodel = "vg5000"
 		elif tempmodel.startswith("atemio"):
 			brand = "Atemio"
 			if tempmodel == "atemio6000":
@@ -350,6 +357,8 @@ def getAllInfo():
 		remote = procmodel.replace(" ", "")
 	elif procmodel == "vg2000":
 		remote = "xcombo"
+	elif procmodel == "vg5000":
+		remote = "sf3038"
 	elif procmodel.startswith("atemio"):
 		remote = "atemio"
 
