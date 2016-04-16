@@ -290,6 +290,8 @@ def getAllInfo():
 		type = "nbox"
 	elif type == "sagemcom88":
 		type = "esi88"
+	elif type == "vg5000":
+		type = "sf3038"
 	elif type in ("tf7700hdpvr", "topf"):
 		type = "topf"
 
