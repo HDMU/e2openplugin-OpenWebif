@@ -254,7 +254,7 @@ def getAllInfo():
 			brand = "Octagon"
 			model = tempmodel
 			if tempmodel == "sf3038":
-				procmodel = "6000"
+				procmodel = "g300"
 			elif tempmodel == "sf108":
 				procmodel = "vg5000"
 		elif tempmodel.startswith("atemio"):
@@ -292,7 +292,7 @@ def getAllInfo():
 		type = "esi88"
 	elif type == "vg2000":
 		type = "xcombo"
-	elif type == "vg5000":
+	elif type in ("vg5000", "g300"):
 		type = "sf3038"
 	elif type in ("tf7700hdpvr", "topf"):
 		type = "topf"
