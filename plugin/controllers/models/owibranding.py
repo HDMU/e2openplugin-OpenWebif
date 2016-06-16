@@ -266,6 +266,10 @@ def getAllInfo():
 			else:
 				model = "Nemesis"
 			procmodel = tempmodel
+		elif tempmodel.startswith("wetek"):
+			brand = "Wetek"
+			model = "Play"
+			procmodel = tempmodel
 		elif tempmodel.startswith("xpeedlxc"):
 			brand = "Golden Interstar"
 			model = tempmodel
