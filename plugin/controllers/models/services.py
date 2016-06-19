@@ -13,6 +13,7 @@ from Tools.Directories import fileExists
 from Components.Sources.ServiceList import ServiceList
 from Components.ParentalControl import parentalControl
 from Components.config import config
+from Components.NimManager import nimmanager
 from ServiceReference import ServiceReference
 from Screens.ChannelSelection import service_types_tv, service_types_radio, FLAG_SERVICE_NEW_FOUND
 from enigma import eServiceCenter, eServiceReference, iServiceInformation, eEPGCache, getBestPlayableServiceReference
@@ -84,8 +85,8 @@ def getCurrentService(session):
 
 def getCurrentFullInfo(session):
 	now = next = {}
-
 	inf = getCurrentService(session)
+	inf['tuners'] = list(map(chr, range(65,65+nimmanager.getSlotCount()))) 
 
 	try:
 		info = session.nav.getCurrentService().info()
@@ -109,6 +110,7 @@ def getCurrentFullInfo(session):
 
 	if ref is not None:
 		inf['sref'] = '_'.join(ref.split(':', 10)[:10])
+		inf['srefv2']= ref
 		inf['picon'] = getPicon(ref)
 		inf['wide'] = inf['aspect'] in (3, 4, 7, 8, 0xB, 0xC, 0xF, 0x10)
 		inf['ttext'] = getServiceInfoString(info, iServiceInformation.sTXTPID)
@@ -373,15 +375,17 @@ def getServices(sRef, showAll = True, showHidden = False):
 		if not st & 512 or showHidden:
 			if showAll or st == 0:
 				service = {}
-				service['servicereference'] = sitem[0].encode("utf8")
-				service['servicename'] = sitem[1].encode("utf8")
+				service['servicereference'] = unicode(sitem[0], 'utf_8', errors='ignore').encode('utf_8', 'ignore')
+				service['servicename'] = unicode(sitem[1], 'utf_8', errors='ignore').encode('utf_8', 'ignore')
 				services.append(service)
 
 	return { "services": services }
 
-def getAllServices():
+def getAllServices(type):
 	services = []
-	bouquets = getBouquets("tv")["bouquets"]
+	if type is None:
+		type="tv"
+	bouquets = getBouquets(type)["bouquets"]
 	for bouquet in bouquets:
 		services.append({
 			"servicereference": bouquet[0],
@@ -659,7 +663,10 @@ def getSearchEpg(sstr, endtime=None):
 		except UnicodeEncodeError:
 			pass
 	epgcache = eEPGCache.getInstance()
-	events = epgcache.search(('IBDTSENR', 128, eEPGCache.PARTIAL_TITLE_SEARCH, sstr, 1));
+	search_type = eEPGCache.PARTIAL_TITLE_SEARCH
+	if config.OpenWebif.webcache.epg_desc_search.value:
+		search_type = eEPGCache.FULL_DESCRIPTION_SEARCH
+	events = epgcache.search(('IBDTSENR', 128, search_type, sstr, 1));
 	if events is not None:
 		for event in events:
 			ev = {}
@@ -760,6 +767,18 @@ def getMultiEpg(self, ref, begintime=-1, endtime=None):
 			if not timerlist.has_key(str(timer.service_ref)):
 				timerlist[str(timer.service_ref)] = []
 			timerlist[str(timer.service_ref)].append(timer)
+		
+		if begintime == -1:
+			# If no start time is requested, use current time as start time and extend
+			# show all events until 6:00 next day
+			bt = localtime()
+			offset = mktime( (bt.tm_year, bt.tm_mon, bt.tm_mday, bt.tm_hour - bt.tm_hour%2, 0,0, -1,-1,-1) )
+			lastevent = mktime( (bt.tm_year, bt.tm_mon, bt.tm_mday, 23, 59, 0, -1, -1, -1) ) + 6*3600
+		else:
+			# If a start time is requested, show all events in a 24 hour frame
+			bt = localtime(begintime)
+			offset = mktime( (bt.tm_year, bt.tm_mon, bt.tm_mday, bt.tm_hour - bt.tm_hour%2, 0,0, -1,-1,-1) )
+			lastevent = offset + 86399
 
 		for event in events:
 			ev = {}
@@ -774,14 +793,6 @@ def getMultiEpg(self, ref, begintime=-1, endtime=None):
 			if not ret.has_key(channel):
 				ret[channel] = [ [], [], [], [], [], [], [], [], [], [], [], [] ]
 				picons[channel] = getPicon(event[4])
-
-			if offset is None:
-				bt = event[1]
-				if begintime > event[1]:
-					bt = begintime
-				et = localtime(bt)
-				offset = mktime( (et.tm_year, et.tm_mon, et.tm_mday, 0, 0, 0, -1, -1, -1) )
-				lastevent = mktime( (et.tm_year, et.tm_mon, et.tm_mday, 23, 59, 0, -1, -1, -1) )
 
 			slot = int((event[1]-offset) / 7200)
 			if slot > -1 and slot < 12 and event[1] < lastevent:

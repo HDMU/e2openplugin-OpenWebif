@@ -22,7 +22,7 @@ from models.locations import getLocations, getCurrentLocation, addLocation, remo
 from models.timers import getTimers, addTimer, addTimerByEventId, editTimer, removeTimer, toggleTimerStatus, cleanupTimer, writeTimerList, recordNow, tvbrowser, getSleepTimer, setSleepTimer, getPowerTimer, setPowerTimer, getVPSChannels
 from models.message import sendMessage, getMessageAnswer
 from models.movies import getMovieList, removeMovie, getMovieTags, moveMovie, renameMovie, getAllMovies
-from models.config import getSettings, addCollapsedMenu, removeCollapsedMenu, setRemoteGrabScreenshot, setZapStream, saveConfig, getZapStream
+from models.config import getSettings, addCollapsedMenu, removeCollapsedMenu, setRemoteGrabScreenshot, setZapStream, saveConfig, getZapStream, setEPGSearchType
 from models.stream import getStream, getTS, getStreamSubservices
 from models.servicelist import reloadServicesLists
 from models.mediaplayer import mediaPlayerAdd, mediaPlayerRemove, mediaPlayerPlay, mediaPlayerCommand, mediaPlayerCurrent, mediaPlayerList, mediaPlayerLoad, mediaPlayerSave, mediaPlayerFindFile
@@ -82,7 +82,7 @@ class WebController(BaseController):
 		self.suppresslog = True
 		return getStatusInfo(self)
 
-	def P_signal(self, request):
+	def P_tunersignal(self, request):
 		return getFrontendStatus(self.session)
 
 	def P_vol(self, request):
@@ -190,18 +190,36 @@ class WebController(BaseController):
 	def P_getcurrlocation(self, request):
 		return getCurrentLocation()
 
-	def P_getallservices(self, request):
-		if not config.OpenWebif.xbmcservices.value:
-			return getAllServices()
+#TODO: remove the setting for xmbc and use a extra url parameter 
+#the openwebif config setting is not the right position
 
+	def P_getallservices(self, request):
+		self.isGZ=True
+		type = "tv"
+		if "type" in request.args.keys():
+			type = "radio"
+# NEW : use url parameter instead of setting
+		if "renameserviceforxmbc" in request.args.keys():
+			bouquets = getAllServices(type)
+			count = 0
+			for bouquet in bouquets["services"]:
+				for service in bouquet["subservices"]:
+					service["servicename"] = "%d - %s" % (count + 1, service["servicename"])
+					count += 1
+			return bouquets
+		
+# TODO : remove this if the setting is removed
+		if not config.OpenWebif.xbmcservices.value:
+			return getAllServices(type)
+
+# TODO : remove this if the setting is removed
 		# rename services for xbmc
-		bouquets = getAllServices()
+		bouquets = getAllServices(type)
 		count = 0
 		for bouquet in bouquets["services"]:
 			for service in bouquet["subservices"]:
 				service["servicename"] = "%d - %s" % (count + 1, service["servicename"])
 				count += 1
-		self.isGZ=True
 		return bouquets
 
 	def P_getservices(self, request):
@@ -310,6 +328,7 @@ class WebController(BaseController):
 		return getMovieList(dirname, tag, request.args)
 	
 	def P_fullmovielist(self, request):
+		self.isGZ=True
 		return getAllMovies()
 
 	def P_movielisthtml(self, request):
@@ -355,8 +374,10 @@ class WebController(BaseController):
 		res = self.testMandatoryArguments(request, ["sRef"])
 		if res:
 			return res
-
-		return removeMovie(self.session, request.args["sRef"][0])
+		force = False
+		if "force" in request.args.keys():
+			force = True
+		return removeMovie(self.session, request.args["sRef"][0], force)
 
 	def P_moviemove(self, request):
 		res = self.testMandatoryArguments(request, ["sRef"])
@@ -381,11 +402,14 @@ class WebController(BaseController):
 	def P_movietags(self, request):
 		_add = None
 		_del = None
+		_sref = None
 		if "add" in request.args.keys():
 			_add = request.args["add"][0]
 		if "del" in request.args.keys():
 			_del = request.args["del"][0]
-		return getMovieTags(_add,_del)
+		if "sref" in request.args.keys():
+			_sref = request.args["sref"][0]
+		return getMovieTags(_sref,_add,_del)
 
 	# a duplicate api ??
 	def P_gettags(self, request):
@@ -878,6 +902,22 @@ class WebController(BaseController):
 					mnow["id"] = movie.getEventId()
 			except Exception, e:
 				mnow = now
+		elif mnow["sref"] == '':
+			serviceref = self.session.nav.getCurrentlyPlayingServiceReference()
+			if serviceref is not None:
+				try:
+					if serviceref.toString().startswith('4097:0:0:0:0:0:0:0:0:0:/'):
+						from enigma import eServiceCenter
+						serviceHandler = eServiceCenter.getInstance()
+						sinfo = serviceHandler.info(serviceref)
+						if sinfo:
+							mnow["title"] = sinfo.getName(serviceref)
+						servicepath = serviceref and serviceref.getPath()
+						if servicepath and servicepath.startswith("/"):
+							mnow["filename"] = servicepath
+							mnow["sref"] = serviceref.toString()
+				except Exception, e:
+					pass
 		return {
 			"info": info,
 			"now": mnow,
@@ -917,6 +957,12 @@ class WebController(BaseController):
 		if res:
 			return res
 		return setZapStream(request.args["checked"][0] == "true")
+
+	def P_epgsearchtype(self, request):
+		res = self.testMandatoryArguments(request, ["checked"])
+		if res:
+			return res
+		return setEPGSearchType(request.args["checked"][0] == "true")
 
 	def P_streamm3u(self,request):
 		self.isCustom = True
@@ -1112,3 +1158,22 @@ class WebController(BaseController):
 
 	def P_loadepg(self, request):
 		return loadEpg()
+
+	def P_getsubtitles(self, request):
+		service = self.session.nav.getCurrentService()
+		ret = { "subtitlelist": [], "result": False }
+		subtitle = service and service.subtitle()
+		subtitlelist = subtitle and subtitle.getSubtitleList()
+		if subtitlelist:
+			for i in range(0, len(subtitlelist)):
+				ret["result"] = True
+				subt = subtitlelist[i]
+				ret["subtitlelist"].append({
+					"type": subt[0],
+					"pid": subt[1],
+					"page_nr": subt[2],
+					"mag_nr": subt[3],
+					"lang": subt[4]
+				})
+		return ret
+

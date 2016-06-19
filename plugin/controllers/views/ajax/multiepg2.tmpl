@@ -31,6 +31,7 @@ tr { vertical-align: top }
 .title { font-weight: bold; color: #061c37; }
 .desc { font-size: 10px; color: #176093; }
 .even { background-color: #dfeffc; }
+.odd { background-color: #fff; }
 .border { border-right: 1px solid #4297d7; }
 .event { cursor: pointer; width: 190px; overflow:hidden; }
 .bq { background-color: #1c478e; font-size: 11px; font-weight: bold; color: #fff; padding: 2px 4px; line-height: 18px; cursor: pointer; white-space: nowrap; display: inline-block; margin: 1px 1px; }
@@ -48,6 +49,7 @@ html, body, #tvcontent { width:100%; height:100%;}
 .fht-table-wrapper .fht-table .fht-cell{overflow:hidden;height:1px}
 .fht-table-wrapper .fht-fixed-column,.fht-table-wrapper .fht-fixed-body{top:0;left:0;position:absolute}
 .fht-table-wrapper .fht-fixed-column{z-index:1}
+#atdialog { width: 90%; height: auto; position: fixed; top: 10px; left: 10px; z-index: 1001; display: none; overflow: auto; }
 }
 </style>
 <div id="tvcontent">
@@ -96,6 +98,11 @@ html, body, #tvcontent { width:100%; height:100%;}
 </table>
 </div>
 <div id="eventdescription"></div>
+<div id="atdialog">
+<div id="toolbar-header" class="athandle" style="height:30px;cursor:move">
+<div id="leftmenu_expander_main" class="leftmenu_icon leftmenu_icon_collapse" onclick="\$('#atdialog').hide(200)"></div>
+</div>
+<div id="content_container"></div></div>
 #if $reloadtimer==1
 <div id="editTimerForm" title="$tstrings['edit_timer']"></div>
 #end if
@@ -106,13 +113,14 @@ var reloadTimers = false;
 \$(".bq").click(function() {
 	var id = \$(this).attr("js:ref");
 	\$("#tvcontent").html(loadspinner).load('../ajax/multiepg2?reloadtimer=0&bref='+id);
+	if(typeof(Storage) !== "undefined") { localStorage.lastmbq = id; }
 });
 \$(".event").click(function() {
 	var id = \$(this).attr("js:id");
 	var ref = \$(this).attr("js:ref");
 	\$("#eventdescription").load('../ajax/event?idev='+id+'&sref='+escape(ref), function() { 
 		\$("#eventdescription").show(200).draggable( { handle: ".handle" } );
-    });
+	});
 });
 \$(".plus").click(function() {
 	var day = \$(this).attr("js:day");

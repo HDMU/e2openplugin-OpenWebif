@@ -19,6 +19,10 @@
 			<option value="0">$tstrings['nothing']</option>
 		</select>
 		</span>
+		<label><input class="cbtvr" id="cbtv" type="checkbox" name="group1[]" /> TV </label>
+		<label><input class="cbtvr" id="cbradio" type="checkbox" name="group1[]" /> Radio </label>
+		<span>
+		</span>
 	</div>
 	
 	<div class="timerlist_row">
@@ -46,6 +50,13 @@
 		<span class="timerlist_row_l">$tstrings['just_play']:</span>
 		<span style="margin: 5px;">
 			<input type="checkbox" name="justplay" id="justplay" value="0" />
+		</span>
+	</div>
+
+	<div class="timerlist_row" id="always_zap1">
+		<span class="timerlist_row_l">Record+ZAP:</span>
+		<span style="margin: 5px;">
+			<input type="checkbox" name="always_zap" id="always_zap" value="0" />
 		</span>
 	</div>
 	
@@ -106,7 +117,7 @@
 </div>
 </form>
 
-<script src="/js/jquery.timerpicker.js"></script>
+<script src="/js/jquery-ui-timepicker-addon.min.js"></script>
 
 <script type="text/javascript">
 
@@ -114,7 +125,16 @@
 
 initTimerEditBegin();
 
+$('.cbtvr').click(function() {
+	$('input[name="' + this.name + '"]').not(this).prop('checked', false);
+	initTimerBQ($('#cbradio').is(':checked'));
+});
+
 $('#vpsplugin_enabled').click(function() { checkVPS();});
+
+$('#always_zap').click(function() {
+	$('#justplay').prop("disabled",$('#always_zap').is(':checked'));
+});
 
 $('#timerend').datetimepicker({
 	
@@ -128,7 +148,7 @@ $('#timerend').datetimepicker({
 	dayNamesMin: [tstr_su, tstr_mo, tstr_tu, tstr_we, tstr_th, tstr_fr, tstr_sa, tstr_su],
 	
 	dateFormat: 'dd.mm.yy',
-	timeFormat: 'hh:mm',
+	timeFormat: 'HH:mm',
 	onClose: function(dateText, inst) {
 		if (!timeredit_begindestroy && $('#timerbegin').val() != '' &&	
 			$('#timerbegin').datetimepicker('getDate') > $(this).datetimepicker('getDate')) {
@@ -167,10 +187,17 @@ $('#editTimerForm').dialog({
 					name: $('#timername').val(),
 					description: $('#description').val(),
 					disabled: ($('#enabled').is(':checked')?"0":"1"),
-					justplay: ($('#justplay').is(':checked')?"1":"0"),
 					afterevent: $('#afterevent').val(),
 					tags: tags,
 					repeated: repeated };
+				
+				if($('#always_zap').is(':checked')) {
+					urldata["always_zap"] = "1";
+					urldata["justplay"] = "0";
+				}
+				else
+					urldata["justplay"] = $('#justplay').is(':checked')?"1":"0";
+				
 				if ($('#dirname').val() != 'None')
 					urldata["dirname"] = $('#dirname').val();
 				if (!$('#has_vpsplugin1').is(':hidden'))

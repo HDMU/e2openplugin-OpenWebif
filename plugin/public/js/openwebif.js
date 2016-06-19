@@ -467,9 +467,20 @@ function addAutoTimerEvent(sRef, sname, title ,begin, end) {
 			"sref" : sRef,
 			"sname" : sname
 		};
+		
+		var atd=$('#atdialog');
+		if (atd != 'undefined')
+		{
+			$("#content_container").load('/ajax/at', function() { 
+				$("#atdialog").show(200).draggable();
+			});
+		}
+		else {
+		
 		// open the autotimer edit view with a new autotimer
 		load_maincontent('ajax/at');
 		
+		}
 		$("#modaldialog").dialog('destroy');
 		
 }
@@ -697,6 +708,13 @@ $(function() {
 	});
 });
 
+$(function() {
+	$("input[name=epgsearchtype]").click(function(evt) {
+		$('input[name=epgsearchtype]').attr('checked', evt.currentTarget.checked);
+		webapi_execute("/api/epgsearchtype?checked=" + evt.currentTarget.checked);
+	});
+});
+
 $(window).keydown(function(evt) {
 	if (evt.which == 16) { 
 		shiftbutton = true;
@@ -760,15 +778,20 @@ var current_end;
 var timeredit_initialized = false;
 var timeredit_begindestroy = false;
 
-function initTimerEdit() {
+function initTimerBQ(radio) {
+
+	var url="/api/getallservices";
+	if (radio == true) {
+		url += "?type=radio"
+	}
+
 	$.ajax({
 		async: false,
-		url: "/api/getallservices",
+		url: url,
 		success: function(data) {
 			services = $.parseJSON(data);
 			if (services.result) {
 				$('#bouquet_select').find('option').remove().end();
-					
 				for (var id in services.services) {
 					service = services.services[id];
 					for (var id2 in service.subservices) {
@@ -779,6 +802,12 @@ function initTimerEdit() {
 			}
 		}
 	});
+
+}
+
+function initTimerEdit(radio) {
+	
+	initTimerBQ(radio);
 	
 	$.ajax({
 		async: false,
@@ -842,7 +871,7 @@ function initTimerEditBegin()
 		dayNamesMin: [tstr_su, tstr_mo, tstr_tu, tstr_we, tstr_th, tstr_fr, tstr_sa, tstr_su],
 		
 		dateFormat: 'dd.mm.yy',
-		timeFormat: 'hh:mm',
+		timeFormat: 'HH:mm',
 		onClose: function(dateText, inst) {
 			if ($('#timerend').val() != '' &&
 				$(this).datetimepicker('getDate') > $('#timerend').datetimepicker('getDate')) {
@@ -861,8 +890,24 @@ function editTimer(serviceref, begin, end) {
 	current_begin = begin;
 	current_end = end;
 	
+	var radio = false;
+	if (typeof serviceref !== 'undefined') {
+		radio = ( serviceref.substring(0,6) == '1:0:2:');
+	}
+	
+	$('#cbtv').prop('checked',!radio);
+	$('#cbradio').prop('checked',radio);
+	
 	if (!timeredit_initialized) {
-		initTimerEdit();
+		initTimerEdit(radio);
+	}
+	else
+	{
+		var _chsref=$("#bouquet_select option:last").val();
+		if(radio && _chsref.substring(0,6) !== '1:0:2:')
+			initTimerEdit(radio);
+		if(!radio && _chsref.substring(0,6) == '1:0:2:')
+			initTimerEdit(radio);
 	}
 	
 	if (timeredit_begindestroy) {
@@ -870,7 +915,6 @@ function editTimer(serviceref, begin, end) {
 		timeredit_begindestroy=false;
 	}
 
-	
 	$.ajax({
 		async: false,
 		url: "/api/timerlist",
@@ -885,7 +929,16 @@ function editTimer(serviceref, begin, end) {
 							$('#timername').val(timer.name);
 							$('#description').val(timer.description);
 							$('#bouquet_select').val(timer.serviceref);
+							if(timer.serviceref !== $('#bouquet_select').val()) {
+								$('#bouquet_select').append($("<option></option>").attr("value", timer.serviceref).text(timer.servicename));
+								$('#bouquet_select').val(timer.serviceref);
+							}
 							$('#dirname').val(timer.dirname);
+							if(timer.dirname !== $('#dirname').val()) {
+								current_location = "<option value='" + timer.dirname + "'>" + timer.dirname + "</option>";
+								$('#dirname').append(current_location);
+								$('#dirname').val(timer.dirname);
+							}
 							$('#enabled').prop("checked", timer.disabled == 0);
 							$('#justplay').prop("checked", timer.justplay);
 							$('#afterevent').val(timer.afterevent);
@@ -936,6 +989,15 @@ function editTimer(serviceref, begin, end) {
 								$('#has_vpsplugin1').hide();
 							}
 							
+							if (typeof timer.always_zap !== 'undefined')
+							{
+								$('#always_zap1').show();
+								$('#always_zap').prop("checked", timer.always_zap==1);
+								$('#justplay').prop("disabled",timer.always_zap==1);
+							} else {
+								$('#always_zap1').hide();
+							}
+							
 							$('#editTimerForm').dialog("open");
 							$('#editTimerForm').dialog("option", "title", tstr_edit_timer + " - " + timer.name);
 							
@@ -951,7 +1013,8 @@ function addTimer(evt,chsref,chname) {
 	current_serviceref = '';
 	current_begin = -1;
 	current_end = -1;
-	
+	servicename = '';
+
 	var begin = -1;
 	var end = -1;
 	var serviceref = '';
@@ -959,31 +1022,48 @@ function addTimer(evt,chsref,chname) {
 	var desc = '';
 	var margin_before = 0;
 	var margin_after = 0;
-	
+
 	if (typeof evt !== 'undefined' && evt != '') {
 		begin = evt.begin;
 		end = evt.begin+evt.duration;
 		serviceref = evt.sref;
+		servicename = evt.channel;
 		title = evt.title;
 		desc = evt.shortdesc;
 		margin_before = evt.recording_margin_before;
 		margin_after = evt.recording_margin_after;
 	}
-	
+
 	var lch=$('#bouquet_select > option').length;
-	
-	if (!timeredit_initialized || lch < 2) {
-		initTimerEdit();
+
+	var radio = false;
+	if (typeof chsref !== 'undefined') {
+		radio = ( chsref.substring(0,6) == '1:0:2:');
 	}
-	
+
+	$('#cbtv').prop('checked',!radio);
+	$('#cbradio').prop('checked',radio);
+
+	if (!timeredit_initialized || lch < 2) {
+		initTimerEdit(radio);
+	}
+	else
+	{
+		var _chsref=$("#bouquet_select option:last").val();
+		if(radio && _chsref.substring(0,6) !== '1:0:2:')
+			initTimerEdit(radio);
+		if(!radio && _chsref.substring(0,6) == '1:0:2:')
+			initTimerEdit(radio);
+	}
+
 	if (typeof chsref !== 'undefined' && typeof chname !== 'undefined') {
-		// NOT NICE BUT IT WORKS
-		// TODO : remove the radio channel from the list after close
 		serviceref = chsref;
 		title = chname;
-		$('#bouquet_select').append($("<option></option>").attr("value", serviceref).text(chname));
+		if ($('#bouquet_select').val(chsref) === 'undefined') {
+			$('#bouquet_select').append($("<option></option>").attr("value", serviceref).text(chname));
+		}
 	}
-	
+
 	$('#timername').val(title);
 	$('#description').val(desc);
 	$('#dirname').val("None");
@@ -1006,7 +1086,11 @@ function addTimer(evt,chsref,chname) {
 	$('#timerend').datetimepicker('setDate', enddate);
 
 	$('#bouquet_select').val(serviceref);
-	
+	if (serviceref !== $('#bouquet_select').val() && typeof servicename !== 'undefined' && servicename != '') {
+		$('#bouquet_select').append($("<option></option>").attr("value", serviceref).text(servicename));
+		$('#bouquet_select').val(serviceref);
+	}
+
 	$('#editTimerForm').dialog("open");
 	$('#editTimerForm').dialog("option", "title", tstr_add_timer);
 	$('#editTimerForm').dialog("option", "height", "auto");
@@ -1046,11 +1130,19 @@ function InitBouquets(tv)
 {
 	var mode="";
 	if (tv===true) {
+	
 		$('#btn0').click(function(){
 			$("#tvcontent").html(loadspinner).load("ajax/current");
 		});
 		$('#btn5').click(function(){
-			$("#tvcontent").html(loadspinner).load('ajax/multiepg');
+			var bq="";
+			if(typeof(Storage) !== "undefined") {
+				if(localStorage.lastmbq)
+				{
+					bq= "?bref=" + localStorage.lastmbq;
+				}
+			}
+			$("#tvcontent").html(loadspinner).load('ajax/multiepg' + bq);
 		});
 
 	} 

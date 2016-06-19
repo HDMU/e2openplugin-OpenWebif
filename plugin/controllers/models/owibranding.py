@@ -132,6 +132,14 @@ def getAllInfo():
 		if (procmodel.startswith("optimuss") or procmodel.startswith("pingulux")):
 			brand = "Edision"
 			model = procmodel.replace("optimmuss", "Optimuss ").replace("plus", " Plus").replace(" os", " OS")
+		elif (procmodel.startswith("fusion") or procmodel.startswith("purehd")):
+			brand = "Xsarius"
+			if procmodel == "fusionhd":
+				model = procmodel.replace("fusionhd", "Fusion HD")
+			elif procmodel == "fusionhdse":
+				model = procmodel.replace("fusionhdse", "Fusion HD SE")
+			elif procmodel == "purehd":
+				model = procmodel.replace("purehd", "PureHD")
 	elif fileExists("/proc/stb/info/azmodel"):
 		brand = "AZBox"
 		f = open("/proc/stb/info/model",'r') # To-Do: Check if "model" is really correct ...
@@ -150,6 +158,26 @@ def getAllInfo():
 		procmodel = f.readline().strip()
 		f.close()
 		model = procmodel.title().replace("olose", "olo SE").replace("olo2se", "olo2 SE").replace("2", "²")
+	elif fileExists("/proc/boxtype"):
+		f = open("/proc/boxtype",'r')
+		procmodel = f.readline().strip().lower()
+		f.close()
+		if procmodel in ("adb2850", "adb2849", "bska", "bsla", "bxzb", "bzzb"):
+			brand = "Advanced Digital Broadcast"
+			if procmodel in ("bska", "bxzb"):
+				model = "ADB 5800S"
+			elif procmodel in ("bsla", "bzzb"):
+				model = "ADB 5800SX"
+			elif procmodel == "adb2849":
+				model = "ADB 2849ST"
+			else:
+				model = "ADB 2850ST"
+		elif procmodel in ("esi88", "uhd88"):
+			brand = "Sagemcom"
+			if procmodel == "uhd88":
+				model = "UHD 88"
+			else:
+				model = "ESI 88"
 	elif fileExists("/proc/stb/info/boxtype"):
 		f = open("/proc/stb/info/boxtype",'r')
 		procmodel = f.readline().strip().lower()
@@ -157,6 +185,9 @@ def getAllInfo():
 		if procmodel.startswith("et"):
 			brand = "Xtrend"
 			model = procmodel.upper()
+		elif procmodel.startswith("xpeed"):
+			brand = "Golden Interstar"
+			model = procmodel
 		elif procmodel.startswith("xp"):
 			brand = "MaxDigital"
 			model = procmodel
@@ -166,6 +197,9 @@ def getAllInfo():
 		elif procmodel.startswith("formuler"):
 			brand = "Formuler"
 			model = procmodel.replace("formuler","")
+		elif procmodel.startswith("g300"):
+			brand = "Miraclebox"
+			model = "Premiun twin+"
 		elif procmodel.startswith("ini"):
 			if procmodel.endswith("9000ru"):
  				brand = "Sezam"
@@ -202,27 +236,58 @@ def getAllInfo():
 		elif procmodel.startswith("unibox-"):
 			brand = "Venton"
 			model = "HDe"
+		elif procmodel == "hd1100":
+			brand = "Mut@nt"
+			model = "hd1100"
+		elif procmodel == "hd1200":
+			brand = "Mut@nt"
+			model = "hd1200"
+		elif procmodel == "hd1265":
+			brand = "Mut@nt"
+			model = "hd1265"
 		elif procmodel == "hd2400":
 			brand = "Mut@nt"
 			model = "hd2400"
+		elif procmodel == "arivalink200":
+			brand = "Ferguson"
+			model = "Ariva @Link 200"
+		elif procmodel.startswith("spark"):
+			brand = "Fulan"
+			if procmodel == "spark7162":
+				model = "Spark 7162"
+			else:
+				model = "Spark"
+		elif procmodel == "spycat":
+			brand = "Spycat"
+			model = "spycat"
+		elif procmodel == "spycatmini":
+			brand = "Spycat"
+			model = "spycatmini"
+		elif procmodel == "wetekplay":
+			brand = "WeTeK"
+			model = procmodel
+		elif procmodel.startswith("osmini"):
+			brand = "Edision"
+			model = procmodel
+		elif procmodel == "h5":
+			brand = "Zgemma"
+			model = "H5"
 	elif fileExists("/proc/stb/info/model"):
 		f = open("/proc/stb/info/model",'r')
 		procmodel = f.readline().strip().lower()
 		f.close()
-		if procmodel in ("esi88", "sagemcom88", "nbox"):
-			brand = "Sagemcom"
-			if fileExists("/proc/boxtype"):
-				f = open("/proc/boxtype",'r')
-				procmodel = f.readline().strip().lower()
-				f.close()
 		if procmodel == "tf7700hdpvr":
 			brand = "Topfield"
 			model = "TF7700 HDPVR"
-		elif procmodel in ("adb2850", "adb2849", "nbox", "bska", "bsla", "bxzb", "bzzb"):
-			brand = "Advanced Digital Broadcast"
-		elif model in ("sagemcom88", "esi88", "uhd88", "dsi87"):
+		elif procmodel == "dsi87":
 			brand = "Sagemcom"
-		# Other E2 boxes also use "dm8000", so we can only safely assume "Dream Multimedia" for all others starting with "dm":
+			model = "DSI 87"
+		elif procmodel.startswith("spark"):
+			brand = "Fulan"
+			if procmodel == "spark7162":
+				model = "Spark 7162"
+			else:
+				model = "Spark"
 		elif (procmodel.startswith("dm") and not procmodel == "dm8000"):
 			brand = "Dream Multimedia"
 			model = procmodel.replace("dm", "DM", 1)
@@ -307,7 +372,7 @@ def getAllInfo():
 	info['type'] = type
 
 	remote = "dmm"
-	if procmodel in ("solo", "duo", "uno", "solo2", "solose", "zero"):
+	if procmodel in ("solo", "duo", "uno", "solo2", "solose", "zero", "solo4k"):
 		remote = "vu_normal"
 	elif procmodel == "duo2":
 		remote = "vu_duo2"
@@ -331,7 +396,7 @@ def getAllInfo():
 		remote = "gigablue"
 	elif procmodel == "gbquadplus":
 		remote = "gbquadplus"
-	elif procmodel in ("formuler1", "formuler3"):
+	elif procmodel in ("formuler1", "formuler3", "formuler4"):
 		remote = "formuler1"
 	elif procmodel in ("azboxme", "azboxminime", "me", "minime"):
 		remote = "me"
@@ -357,10 +422,14 @@ def getAllInfo():
 		remote = "xpeedlx"
 	elif procmodel.startswith("xpeedlxc"):
 		remote = "xpeedlxc"
-	elif procmodel in ("nbox", "sagemcom88", "esi88", "adb2850", "adb2849", "dsi87"):
+	elif procmodel in ("adb2850", "adb2849", "bska", "bsla", "bxzb", "bzzb", "esi88", "uhd88", "dsi87", "arivalink200"):
 		remote = "nbox"
+	elif procmodel in ("hd1100", "hd1200", "hd1265"):
+		remote = "hd1x00"
 	elif procmodel == "hd2400":
 		remote = "hd2400"
+	elif procmodel in ("spycat", "spycatmini"):
+		remote = "spycat"
 	elif procmodel.startswith("ixuss"):
 		remote = procmodel.replace(" ", "")
 	elif procmodel == "vg2000":
@@ -369,6 +438,22 @@ def getAllInfo():
 		remote = "sf3038"
 	elif procmodel.startswith("atemio"):
 		remote = "atemio"
+	elif procmodel == "dm8000" and orgdream:
+		remote = "dmm1"
+	elif procmodel in ("dm7080", "dm7020hd", "dm7020hdv2", "dm800sev2", "dm500hdv2", "dm820"):
+		remote = "dmm2"
+	elif procmodel == "wetekplay":
+		remote = procmodel
+	elif procmodel.startswith("osmini"):
+		remote = "osmini"
+	elif procmodel in ("fusionhd"):
+		remote = procmodel
+	elif procmodel in ("fusionhdse"):
+		remote = procmodel
+	elif procmodel in ("purehd"):
+		remote = procmodel
+	elif procmodel in ("h5"):
+		remote = procmodel
 
 	info['remote'] = remote
 
@@ -407,6 +492,12 @@ def getAllInfo():
 			oever = "OpenVuplus 2.1"
 		if ((imagever == "5.1") or (imagever[0] > 5)):
 			oever = "OpenVuplus 2.1"
+	elif fileExists("/var/grun/grcstype"):
+		distro = "Graterlia OS"
+		try:
+			imagever = about.getImageVersionString()
+		except:
+			pass
 	# ToDo: If your distro gets detected as OpenPLi, feel free to add a detection for your distro here ...
 	else:
 		# OE 2.2 uses apt, not opkg
@@ -456,7 +547,10 @@ def getAllInfo():
 		try:
 			driverdate = os.popen('/usr/bin/opkg -V0 list_installed *dvb-proxy*').readline().split( )[2]
 		except:
-			pass
+			try:
+				driverdate = os.popen('/usr/bin/opkg -V0 list_installed *kernel-core-default-gos*').readline().split( )[2]
+			except:
+				pass
 
 	info['oever'] = oever
 	info['distro'] = distro

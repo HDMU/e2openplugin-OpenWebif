@@ -57,7 +57,7 @@
 			<ul>
 				<li><a href='#' onclick="load_maincontent('ajax/tv'); return false;">$tstrings['television']</a></li>
 				<li><a href='#' onclick="load_maincontent('ajax/radio'); return false;">$tstrings['radio']</a></li>
-				<li><a href='ajax/multiepg2' target=_blank>$tstrings['tv_multi_epg']</a></li>
+				<li><a href='#' onclick="OpenMEPG();return false;" target=_blank>$tstrings['tv_multi_epg']</a></li>
 			</ul>
 			#end def
 		
@@ -101,6 +101,15 @@
 			#end def
 		
 			#def searchMenu
+			#if $epgsearchcaps
+			<ul>
+				#if $epgsearchtype
+				<li><input type="checkbox" name="epgsearchtype" checked="checked" />$tstrings['epgsearchextended']</li>
+				#else
+				<li><input type="checkbox" name="epgsearchtype" />$tstrings['epgsearchextended']</li>
+				#end if
+			</ul>
+			#end if
 			<form action="" onSubmit="open_epg_search_dialog(); return false;">
 				<div style="width:100%; text-align:center; padding-top:5px;"><input type="text" id="epgSearch" size="14" /></div>
 				<div style="width:100%; text-align:center;padding-top:5px; padding-bottom:7px;" class="epgsearch"><button>$tstrings['search']</button></div>
@@ -199,7 +208,7 @@
 			<div id="content_container">
 			$content
 			</div>
-			<div id="footer"><h3>&nbsp;&nbsp;<a href="https://github.com/E2OpenPlugins">E2OpenPlugins</a> | <a href="http://www.opena.tv">openATV</a> | <a href="http://www.vuplus-community.net">Black Hole</a> | <a href="http://www.egami-image.com">EGAMI</a> | <a href="http://www.hdfreaks.cc">OpenHDF</a> | <a href="http://www.hdmedia-universe.com">HDMU</a> | <a href="http://openpli.org">OpenPli</a> | <a href="http://forum.sifteam.eu">Sif</a> | <a href="http://openspa.info">OpenSpa</a> | <a href="http://www.world-of-satellite.com">OpenViX</a> | <a href="http://www.vuplus-support.org">VTi</a></h3></div>
+			<div id="footer"><h3>&nbsp;&nbsp;<a href="https://github.com/E2OpenPlugins">E2OpenPlugins</a> | <a href="http://www.opena.tv">openATV</a> | <a href="http://www.vuplus-community.net">Black Hole</a> | <a href="http://www.egami-image.com">EGAMI</a> | <a href="http://www.hdfreaks.cc">OpenHDF</a> | <a href="http://www.hdmedia-universe.com">HDMU</a> | <a href="http://openpli.org">OpenPli</a> | <a href="http://forum.sifteam.eu">Sif</a> | <a href="http://openspa.info">OpenSpa</a> | <a href="http://www.world-of-satellite.com">OpenViX</a> | <a href="http://www.droidsat.org">OpenDroid</a> | <a href="http://www.vuplus-support.org">VTi</a></h3></div>
 		</div>
 	</div>
 	<form name="portForm" action="web/stream.m3u" method="GET" target="_blank">
@@ -218,5 +227,17 @@
 	<div id="editTimerForm" title="$tstrings['edit_timer']"></div>
 	
 </body>
-
+<script>
+function OpenMEPG()
+{
+var bq="";
+if(typeof(Storage) !== "undefined") {
+	if(localStorage.lastmbq)
+	{
+		bq= "?bref=" + localStorage.lastmbq;
+	}
+}
+window.open('ajax/multiepg2' + bq,"_blank");
+}
+</script>
 </html>

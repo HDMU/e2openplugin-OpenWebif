@@ -22,6 +22,34 @@ from time import strftime, localtime
 from Screens import MovieSelection
 
 MOVIETAGFILE = "/etc/enigma2/movietags"
+TRASHDIRNAME = "movie_trash"
+
+#TODO : optimize os import
+#TODO : optimize copy / move using FileTransferJob
+
+def _getTrashDir(path):
+	import os
+	path = os.path.realpath(path)
+	path = os.path.abspath(path)
+	while not os.path.ismount(path):
+		path = os.path.dirname(path)
+	if path.endswith("/"):
+		path = path + TRASHDIRNAME
+	else:
+		path = path + "/" + TRASHDIRNAME
+	if not fileExists(path):
+		statvfs = os.statvfs(path.rstrip(trash_dir_name))
+		free = (statvfs.f_frsize * statvfs.f_bavail) / (1024 * 1024 * 1024)
+		if free < 15:
+			return None
+		try:
+			os.makedirs(path)
+		except OSError:
+			pass
+	if fileExists(path, mode="w"):
+		return path
+	else:
+		return None
 
 def getPosition(cutfile, movie_len):
 	cut_list = []
@@ -109,6 +137,8 @@ def getMovieList(directory=None, tag=None, rargs=None, locations=None):
 	else:
 		dir_is_protected = False
 
+	import os
+
 	if not dir_is_protected:
 		for root in folders:
 			movielist = MovieList(None)
@@ -138,6 +168,20 @@ def getMovieList(directory=None, tag=None, rargs=None, locations=None):
 				filename = '/'.join(serviceref.toString().split("/")[1:])
 				filename = '/'+filename
 				pos = getPosition(filename + '.cuts', Len)
+				
+				# get txt
+				name, ext = os.path.splitext(filename)
+				ext = ext.lower()
+				
+				txtdesc = ""
+				
+				if ext != 'ts':
+					txtfile = name + '.txt'
+					if fileExists(txtfile):
+						txtlines = open(txtfile).readlines()
+						txtdesc = ""
+						for line in txtlines:
+							txtdesc += line
 
 				if Len > 0:
 					Len = "%d:%02d" % (Len / 60, Len % 60)
@@ -149,12 +193,16 @@ def getMovieList(directory=None, tag=None, rargs=None, locations=None):
 				event = info.getEvent(serviceref)
 				ext = event and event.getExtendedDescription() or ""
 
+				if ext == '' and txtdesc != '':
+					ext = txtdesc
+
+				desc = info.getInfoString(serviceref, iServiceInformation.sDescription)
 				servicename = ServiceReference(serviceref).getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
 				movie = {}
 				movie['filename'] = filename
 				movie['filename_stripped'] = filename.split("/")[-1]
 				movie['eventname'] = servicename
-				movie['description'] = info.getInfoString(serviceref, iServiceInformation.sDescription)
+				movie['description'] = unicode(desc,'utf_8', errors='ignore').encode('utf_8', 'ignore')
 				movie['begintime'] = begin_string
 				movie['serviceref'] = serviceref.toString()
 				movie['length'] = Len
@@ -165,7 +213,7 @@ def getMovieList(directory=None, tag=None, rargs=None, locations=None):
 				except:
 					movie['filesize'] = 0
 				movie['fullname'] = serviceref.toString()
-				movie['descriptionExtended'] = ext
+				movie['descriptionExtended'] = unicode(ext,'utf_8', errors='ignore').encode('utf_8', 'ignore')
 				movie['servicename'] = sourceRef.getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
 				movie['recordingtime'] = rtime
 				movie['lastseen'] = pos
@@ -181,11 +229,12 @@ def getAllMovies():
 	locations = config.movielist.videodirs.value[:] or []
 	return getMovieList(None, None, None, locations)
 
-def removeMovie(session, sRef):
+def removeMovie(session, sRef, Force=False):
 	service = ServiceReference(sRef)
 	result = False
 	deleted = False
-
+	message="service error"
+	
 	if service is not None:
 		serviceHandler = eServiceCenter.getInstance()
 		offline = serviceHandler.offlineOperations(service.ref)
@@ -193,30 +242,52 @@ def removeMovie(session, sRef):
 		name = info and info.getName(service.ref) or "this recording"
 
 	if offline is not None:
-		if hasattr(config.usage, 'movielist_trashcan'):
+		if Force == True:
+			message="force delete"
+		elif hasattr(config.usage, 'movielist_trashcan'):
 			fullpath = service.ref.getPath()
 			srcpath = '/'.join(fullpath.split('/')[:-1]) + '/'
 			# TODO: check trash
 			# TODO: check enable trash default value
-			# TODO: remove jpg
 			if '.Trash' not in fullpath and config.usage.movielist_trashcan.value:
+				result = False
+				message = "trashcan"
 				try:
 					import Tools.Trashcan
 					trash = Tools.Trashcan.createTrashFolder(srcpath)
 					if trash:
 						res = _moveMovie(session, sRef, destpath=trash)
 						result = res['result']
-						deleted = result
+						message = res['message']
 				except ImportError:
+					message = "trashcan exception"
 					pass
+				deleted = True
+		elif hasattr(config.usage, 'movielist_use_trash_dir'):
+			fullpath = service.ref.getPath()
+			srcpath = '/'.join(fullpath.split('/')[:-1]) + '/'
+			if TRASHDIRNAME not in fullpath and config.usage.movielist_use_trash_dir.value:
+				message = "trashdir"
+				try:
+					trash = _getTrashDir(fullpath)
+					if trash:
+						res = _moveMovie(session, sRef, destpath=trash)
+						result = res['result']
+						message = res['message']
+				except ImportError:
+					message = "trashdir exception"
+					pass
+				deleted = True
 		if not deleted:
 			if not offline.deleteFromDisk(0):
 				result = True
-
+	else:
+		message="no offline object"
+	
 	if result == False:
 		return {
 			"result": False,
-			"message": "Could not delete Movie '%s'" % name
+			"message": "Could not delete Movie '%s' / %s" % (name,message)
 			}
 	else:
 		return {
@@ -330,7 +401,57 @@ def moveMovie(session, sRef, destpath):
 def renameMovie(session, sRef, newname):
 	return _moveMovie (session,sRef,newname=newname)
 
-def getMovieTags(addtag = None, deltag = None):
+def getMovieTags(sRef = None, addtag = None, deltag = None):
+	
+	if sRef is not None:
+		result = False
+		service = ServiceReference(sRef)
+		if service is not None:
+			fullpath = service.ref.getPath()
+			filename = '/'.join(fullpath.split("/")[1:])
+			metafilename = '/'+filename + '.meta'
+			if fileExists(metafilename):
+				lines = []
+				with open(metafilename, 'r') as f:
+					lines = f.readlines()
+				if lines:
+					meta = ["","","","","","",""]
+					lines = [l.strip() for l in lines]
+					le = len(lines)
+					meta[0:le] = lines[0:le]
+					oldtags = meta[4].split(' ')
+
+					if addtag is not None:
+						addtag = addtag.replace(' ','_')
+						try:
+							oldtags.index(addtag)
+						except ValueError:
+							oldtags.append(addtag)
+					if deltag is not None:
+						deltag = deltag.replace(' ','_')
+					else:
+						deltag = 'dummy'
+					newtags = []
+					for tag in oldtags:
+						if tag != deltag:
+							newtags.append(tag)
+
+					lines[4] = ' '.join(newtags)
+
+					with open(metafilename, 'w') as f:
+						f.write('\n'.join(lines))
+
+					result = True
+					return {
+						"result": result,
+						"tags" : newtags
+					}
+
+		return {
+			"result": result,
+			"resulttext" : "Recording not found"
+		}
+	
 	tags = []
 	wr = False
 	if fileExists(MOVIETAGFILE):

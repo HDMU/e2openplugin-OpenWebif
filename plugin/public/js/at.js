@@ -1,6 +1,6 @@
 //******************************************************************************
 //* at.js: openwebif Autotimer plugin
-//* Version 1.4
+//* Version 1.7
 //******************************************************************************
 //* Copyright (C) 2014 Joerg Bleyel
 //* Copyright (C) 2014 E2OpenPlugins
@@ -12,6 +12,7 @@
 //* V 1.4 - fix timespan, offset, support series plugin
 //* V 1.5 - autotimer settings
 //* V 1.6 - sort autotimer list
+//* V 1.7 - fix autotimer filter
 //*
 //* Authors: Joerg Bleyel <jbleyel # gmx.net>
 //* 		 plnick
@@ -284,11 +285,24 @@ function InitPage() {
 		height: 400,
 		buttons: buttons
 	});
+	
+	$( ".FM" ).change(function() {
+	
+		var nf = $(this).parent().parent();
+		if($(this).val()=="dayofweek") {
+			nf.find(".FS").show();
+			nf.find(".FI").hide();
+		}
+		else
+		{
+			nf.find(".FS").hide();
+			nf.find(".FI").show();
+		}
+	});
 }
 
 var atxml;
 var CurrentAT = null;
-var dencoding = null;
 
 function isBQ(sref)
 {
@@ -389,10 +403,6 @@ function getData()
 function FillAT(autotimerid)
 {
 	var def = $(atxml).find("defaults");
-	if(def)
-		dencoding=def.attr("encoding");
-	if(!dencoding)
-		dencoding="UTF-8";
 
 	$(atxml).find("timer").each(function () {
 		if($(this).attr("id")==autotimerid) {
@@ -562,11 +572,6 @@ function AutoTimerObj (xml) {
 	if(!this.counterFormat)
 		this.counterFormat='';
 
-	this.encoding = xml.attr("encoding");
-	if(!this.encoding) {
-		this.encoding = dencoding;
-	}
-
 	this.vps = false;
 	this.vpso = false;
 	if(xml.attr("vps_enabled") === "yes") {
@@ -624,6 +629,11 @@ AutoTimerObj.prototype.UpdateUI = function(){
 	
 	if(this.location) {
 		$('#location').val(this.location);
+		if(this.location !== $('#location').val()) {
+			current_location = "<option value='" + this.location + "'>" + this.location + "</option>";
+			$('#location').append(current_location);
+			$('#location').val(this.location);
+		}
 		$('#Location').prop('checked',true);
 	}
 	else
@@ -697,10 +707,10 @@ function addAT(evt)
 	});
 	var name = tstr_timernewname;
 	var id = _id.toString();
-	var xml = '<timers><timer name="'+name+'" match="'+name+'" enabled="yes" id="'+id+'" encoding="ISO8859-15" justplay="0" overrideAlternatives="1"></timer></timers>';
+	var xml = '<timers><timer name="'+name+'" match="'+name+'" enabled="yes" id="'+id+'" justplay="0" overrideAlternatives="1"></timer></timers>';
 	if (typeof evt !== 'undefined') 
 	{
-		xml = '<timers><timer name="'+evt.name+'" match="'+evt.name+'" enabled="yes" id="'+id+'" encoding="ISO8859-15" from="'+evt.from+'" to="'+evt.to+'"';
+		xml = '<timers><timer name="'+evt.name+'" match="'+evt.name+'" enabled="yes" id="'+id+'" from="'+evt.from+'" to="'+evt.to+'"';
 		xml += ' searchType="exact" searchCase="sensitive" justplay="0" overrideAlternatives="1" '
 		xml += '><e2service><e2servicereference>'+evt.sref+'</e2servicereference><e2servicename>'+evt.sname+'</e2servicename></e2service>';
 		xml += '</timer></timers>';
@@ -779,7 +789,6 @@ function saveAT()
 	CurrentAT.overrideAlternatives = $('#overrideAlternatives').is(':checked');
 	CurrentAT.timeSpan = $('#timeSpan').is(':checked');
 	CurrentAT.avoidDuplicateDescription = $('#avoidDuplicateDescription').val();
-	CurrentAT.location = $('#avoidDuplicateDescription').val();
 	CurrentAT.timeSpan = $('#timeSpan').is(':checked');
 	CurrentAT.from = $('#from').val();
 	CurrentAT.to = $('#to').val();
@@ -814,23 +823,32 @@ function saveAT()
 			var FM = tr.find(".FM");
 			var FI = tr.find(".FI");
 			var FS = tr.find(".FS");
-			
-			if (FM.val() === 'dayofweek'){
+			var FR = tr.find(".FR");
+			if (FR.is(':checked') === false){
+				if (FM.val() === 'dayofweek'){
+					_f.push (
+							{ 	"t" : FT.val(),
+								"w": FM.val(),
+								"v": FS.val()
+							}
+						); 
+				}
+				else {
+					_f.push (
+							{ 	"t" : FT.val(),
+								"w": FM.val(),
+								"v": FI.val()
+							}
+						); 
+					
+				}
+			} else {
 				_f.push (
-						{ 	"t" : FT.val(),
-							"w": FM.val(),
-							"v": FS.val()
-						}
-					); 
-			}
-			else {
-				_f.push (
-						{ 	"t" : FT.val(),
-							"w": FM.val(),
-							"v": FI.val()
-						}
-					); 
-				
+							{ 	"t" :FT.val(),
+								"w": FM.val(),
+								"v": ""
+							}
+						); 
 			}
 		}
 	});
@@ -861,7 +879,6 @@ function saveAT()
 	reqs += "&maxduration=";
 	if(CurrentAT.maxduration && CurrentAT.maxduration > -1)
 		reqs += CurrentAT.maxduration;
-	reqs += "&encoding=" + encodeURIComponent(CurrentAT.encoding);
 
 	if(CurrentAT.timerOffset) {
 		if(CurrentAT.timerOffsetAfter > -1 && CurrentAT.timerOffsetBefore > -1)
