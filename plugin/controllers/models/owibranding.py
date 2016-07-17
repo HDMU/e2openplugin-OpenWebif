@@ -322,6 +322,8 @@ def getAllInfo():
 				procmodel = "g300"
 			elif tempmodel == "sf108":
 				procmodel = "vg5000"
+			elif tempmodel == "sf108":
+				procmodel = "yh7362"
 		elif tempmodel.startswith("atemio"):
 			brand = "Atemio"
 			if tempmodel == "atemio6000":
@@ -436,6 +438,8 @@ def getAllInfo():
 		remote = "xcombo"
 	elif procmodel == "vg5000":
 		remote = "sf3038"
+	elif procmodel == "yh7362":
+		remote = "sf98"
 	elif procmodel.startswith("atemio"):
 		remote = "atemio"
 	elif procmodel == "dm8000" and orgdream:
