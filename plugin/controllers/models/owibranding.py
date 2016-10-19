@@ -152,7 +152,7 @@ def getAllInfo():
 		procmodel = f.readline().strip()
 		f.close()
 		model = procmodel.upper().replace("GBQUAD", "Quad").replace("PLUS", " Plus")
-	elif fileExists("/proc/stb/info/vumodel"):
+	elif fileExists("/proc/stb/info/vumodel") and not fileExists("/proc/stb/info/boxtype"):
 		brand = "Vu+"
 		f = open("/proc/stb/info/vumodel",'r')
 		procmodel = f.readline().strip()
@@ -183,8 +183,12 @@ def getAllInfo():
 		procmodel = f.readline().strip().lower()
 		f.close()
 		if procmodel.startswith("et"):
-			brand = "Xtrend"
-			model = procmodel.upper()
+			if procmodel == "et7000mini":
+				brand = "Galaxy Innovations"
+				model = "ET-7000 Mini"
+			else:
+				brand = "Xtrend"
+				model = procmodel.upper()
 		elif procmodel.startswith("xpeed"):
 			brand = "Golden Interstar"
 			model = procmodel
@@ -200,6 +204,9 @@ def getAllInfo():
 		elif procmodel.startswith("g300"):
 			brand = "Miraclebox"
 			model = "Premiun twin+"
+		elif procmodel == "7000s":
+			brand = "Miraclebox"
+			model = "Premium micro"
 		elif procmodel.startswith("ini"):
 			if procmodel.endswith("9000ru"):
  				brand = "Sezam"
@@ -266,12 +273,15 @@ def getAllInfo():
 		elif procmodel == "wetekplay":
 			brand = "WeTeK"
 			model = procmodel
-		elif procmodel.startswith("osmini"):
+		elif procmodel.startswith("osm"):
 			brand = "Edision"
 			model = procmodel
 		elif procmodel == "h5":
 			brand = "Zgemma"
 			model = "H5"
+		elif procmodel == "lc":
+			brand = "Zgemma"
+			model = "LC"
 	elif fileExists("/proc/stb/info/model"):
 		f = open("/proc/stb/info/model",'r')
 		procmodel = f.readline().strip().lower()
@@ -394,6 +404,8 @@ def getAllInfo():
 		remote = "et8000"
 	elif procmodel in ("et7x00", "et7000", "et7500"):
 		remote = "et7x00"
+	elif procmodel == "et7000mini":
+		remote = "et7000mini"
 	elif procmodel == "gbquad":
 		remote = "gigablue"
 	elif procmodel == "gbquadplus":
@@ -412,6 +424,8 @@ def getAllInfo():
 		remote = "ini-1000"
 	elif procmodel in ("ini-1000sv", "ini-5000sv", "ini-9000de"):
 		remote = "miraclebox"
+	elif procmodel in ("7000s"):
+		remote = "miraclebox2"
 	elif procmodel == "ini-3000":
 		remote = "ini-3000"
 	elif procmodel in ("ini-7012", "ini-7000", "ini-5000", "ini-5000ru"):
@@ -448,7 +462,7 @@ def getAllInfo():
 		remote = "dmm2"
 	elif procmodel == "wetekplay":
 		remote = procmodel
-	elif procmodel.startswith("osmini"):
+	elif procmodel.startswith("osm"):
 		remote = "osmini"
 	elif procmodel in ("fusionhd"):
 		remote = procmodel
@@ -456,8 +470,8 @@ def getAllInfo():
 		remote = procmodel
 	elif procmodel in ("purehd"):
 		remote = procmodel
-	elif procmodel in ("h5"):
-		remote = procmodel
+	elif procmodel in ("h5", "lc"):
+		remote = "h5"
 
 	info['remote'] = remote
 
@@ -540,7 +554,7 @@ def getAllInfo():
 			f = open("/etc/version",'r')
 			imagever = f.readline().strip()
 			f.close()
-			if kernel.major>2:
+			if kernel>2:
 				oever = "OpenVuplus 2.1"
 
 	# reporting the installed dvb-module version is as close as we get without too much hassle
