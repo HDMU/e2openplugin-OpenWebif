@@ -15,7 +15,7 @@ from models.services import getCurrentService, getBouquets, getChannels, getSate
 from models.info import getInfo, getPublicPath, getOpenWebifVer, getTranscodingSupport, getLanguage
 from models.movies import getMovieList
 from models.timers import getTimers
-from models.config import getConfigs, getConfigsSections
+from models.config import getConfigs, getConfigsSections, getZapStream, getShowChPicon
 from base import BaseController
 from time import mktime, localtime
 from models.locations import getLocations
@@ -64,6 +64,7 @@ class AjaxController(BaseController):
 		channels = getChannels(idbouquet, stype)
 		channels['transcoding'] = getTranscodingSupport()
 		channels['type'] = stype
+		channels['showchannelpicon'] = getShowChPicon()['showchannelpicon']
 		return channels
 
 	def P_eventdescription(self, request):
@@ -90,37 +91,43 @@ class AjaxController(BaseController):
 		return { "info": info }
 	
 	def P_boxinfo(self, request):
-		info = getInfo()
+		info = getInfo(self.session)
 		type = getBoxType()
 
-		if fileExists(getPublicPath("/images/boxes/"+type+".jpg")):
+		if fileExists(getPublicPath("/images/boxes/"+type+".png")):
+			info["boximage"] = type+".png"
+		elif fileExists(getPublicPath("/images/boxes/"+type+".jpg")):
 			info["boximage"] = type+".jpg"
 		else:
-			info["boximage"] = "unknown.jpg"
+			info["boximage"] = "unknown.png"
 		return info
 
 	def P_epgpop(self, request):
+		events=[]
+		timers=[]
 		if "sref" in request.args.keys():
-			event = getChannelEpg(request.args["sref"][0])
-			event['kinopoisk'] = getLanguage()
-			return event
-		elif  "sstr" in request.args.keys():
-			event = getSearchEpg(request.args["sstr"][0])
-			event['kinopoisk'] = getLanguage()
-			return event
-		else: 
-			return []
+			ev = getChannelEpg(request.args["sref"][0])
+			events = ev["events"]
+		elif "sstr" in request.args.keys():
+			ev = getSearchEpg(request.args["sstr"][0])
+			events = ev["events"]
+		at = False
+		if len(events) > 0: 
+			t = getTimers(self.session)
+			timers = t["timers"]
+			try:
+				from Plugins.Extensions.AutoTimer.AutoTimer import AutoTimer
+				at = True
+			except ImportError:
+				pass
+		if config.OpenWebif.webcache.theme.value:
+			theme = config.OpenWebif.webcache.theme.value
+		else:
+			theme = 'original'
+		return { "theme":theme, "events": events , "timers" : timers , "at" : at, "kinopoisk": getLanguage()}
 
 	def P_epgdialog(self, request):
-		events = self.P_epgpop(request)
-		timers = getTimers(self.session)
-		at = False
-		try:
-			from Plugins.Extensions.AutoTimer.AutoTimer import AutoTimer
-			at = True
-		except ImportError:
-			pass
-		return { "events": events['events'] , "timers" : timers['timers'] , "at" : at, "kinopoisk": events['kinopoisk']}
+		return self.P_epgpop(request)
 
 	def P_screenshot(self, request):
 		box = {}
@@ -142,9 +149,6 @@ class AjaxController(BaseController):
 	def P_powerstate(self, request):
 		return {}
 
-	def P_rebootdialog(self, request):
-		return {}
-
 	def P_message(self, request):
 		return {}
 
@@ -154,6 +158,20 @@ class AjaxController(BaseController):
 		else:
 			movies = getMovieList()
 		movies['transcoding'] = getTranscodingSupport()
+
+		sorttype = config.OpenWebif.webcache.moviesort.value
+		unsort = movies['movies']
+
+		if sorttype == 'name':
+			movies['movies'] = sorted(unsort, key=lambda k: k['eventname']) 
+		elif sorttype == 'named':
+			movies['movies'] = sorted(unsort, key=lambda k: k['eventname'],reverse=True) 
+		elif sorttype == 'date':
+			movies['movies'] = sorted(unsort, key=lambda k: k['recordingtime']) 
+		elif sorttype == 'dated':
+			movies['movies'] = sorted(unsort, key=lambda k: k['recordingtime'],reverse=True) 
+
+		movies['sort'] = sorttype
 		return movies
 
 	def P_workinprogress(self, request):
@@ -182,6 +200,14 @@ class AjaxController(BaseController):
 			"result": True
 		}
 		ret['configsections'] = getConfigsSections()['sections']
+		if config.OpenWebif.webcache.theme.value:
+			ret['themes'] = config.OpenWebif.webcache.theme.choices
+			ret['theme'] = config.OpenWebif.webcache.theme.value
+		else:
+			ret['themes'] = []
+			ret['theme'] = 'original'
+		ret['zapstream'] = getZapStream()['zapstream']
+		ret['showchannelpicon'] = getShowChPicon()['showchannelpicon']
 		return ret
 
 	def P_multiepg(self, request):
@@ -190,53 +216,28 @@ class AjaxController(BaseController):
 			bref = bouq['bouquets'][0][0]
 		else:
 			bref = request.args["bref"][0]
-
 		endtime = 1440
-				
 		begintime = -1
 		day = 0
 		if "day" in request.args.keys():
 			try:
 				day = int(request.args["day"][0])
-				now = localtime()
-				begintime = mktime( (now.tm_year, now.tm_mon, now.tm_mday+day, 0, 0, 0, -1, -1, -1) )
+				if day > 0:
+					now = localtime()
+					begintime = mktime( (now.tm_year, now.tm_mon, now.tm_mday+day, 0, 0, 0, -1, -1, -1) )
 			except Exception, e:
 				pass
-
-		epg = getMultiEpg(self, bref, begintime, endtime)
-		epg['bouquets'] = bouq['bouquets']
-		epg['bref'] = bref
-		epg['day'] = day
-
-		return epg
-	def P_multiepg2(self, request):
-		reloadtimer = 0
-		if "reloadtimer" not in request.args.keys():
-			reloadtimer = 1
-		bouq = getBouquets("tv")
-		if "bref" not in request.args.keys():
-			bref = bouq['bouquets'][0][0]
-		else:
-			bref = request.args["bref"][0]
-
-		endtime = 1440
-
-		begintime = -1
-		day = 0
-		if "day" in request.args.keys():
+		mode = 1
+		if config.OpenWebif.webcache.mepgmode.value:
 			try:
-				day = int(request.args["day"][0])
-				now = localtime()
-				begintime = mktime( (now.tm_year, now.tm_mon, now.tm_mday+day, 0, 0, 0, -1, -1, -1) )
+				mode = int(config.OpenWebif.webcache.mepgmode.value)
 			except Exception, e:
 				pass
-
-		epg = getMultiEpg(self, bref, begintime, endtime)
+		epg = getMultiEpg(self, bref, begintime, endtime, mode)
 		epg['bouquets'] = bouq['bouquets']
 		epg['bref'] = bref
 		epg['day'] = day
-		epg['reloadtimer'] = reloadtimer
-
+		epg['mode'] = mode
 		return epg
 
 	def P_at(self, request):
@@ -264,10 +265,23 @@ class AjaxController(BaseController):
 		return ret
 
 	def P_bqe(self, request):
-		ret = {}
-		return ret
+		return {}
 
 	def P_epgr(self, request):
-		ret = {}
-		return ret
+		return {}
+
+	def P_webtv(self, request):
+		vxgenabled = False
+		if fileExists(getPublicPath("/js/media_player.pexe")):
+			vxgenabled = True
+		transcoding = getTranscodingSupport()
+		transcoder_port = 0
+		if transcoding:
+			try:
+				transcoder_port = int(config.plugins.transcodingsetup.port.value)
+				if getMachineBuild() in ('inihdp', 'hd2400', 'et10000','ew7356'):
+					transcoder_port = int(config.OpenWebif.streamport.value)
+			except StandardError:
+				transcoder_port = 0
+		return {"transcoder_port" : transcoder_port, "vxgenabled" : vxgenabled}
 

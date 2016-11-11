@@ -1,6 +1,6 @@
 //******************************************************************************
 //* at.js: openwebif Autotimer plugin
-//* Version 1.8
+//* Version 2.1
 //******************************************************************************
 //* Copyright (C) 2014-2016 Joerg Bleyel
 //* Copyright (C) 2014-2016 E2OpenPlugins
@@ -14,6 +14,9 @@
 //* V 1.6 - sort autotimer list
 //* V 1.7 - fix autotimer filter
 //* V 1.8 - use textfield for offset
+//* V 1.9 - error handling
+//* V 2.0 - theme support
+//* V 2.1 - update status label
 //*
 //* Authors: Joerg Bleyel <jbleyel # gmx.net>
 //* 		 plnick
@@ -75,10 +78,9 @@ function initValues () {
 		dateFormat: 'dd.mm.yy',
 		onClose: function(dateText, inst) {
 			if ($('#after').val() != '' && $(this).datepicker('getDate') < $('#before').datepicker('getDate')) {
-				$('#error').text(tstr_start_after_end);
-				$('#errorbox').show();
+				showError(tstr_start_after_end);
 			} else
-				$('#errorbox').hide();
+				showError('');
 		}
 	});
 	$('#before').datepicker({
@@ -89,11 +91,10 @@ function initValues () {
 		dateFormat: 'dd.mm.yy',
 		onClose: function(dateText, inst) {
 			if ($('#before').val() != '' && $(this).datepicker('getDate') > $('#after').datepicker('getDate')) {
-				$('#error').text(tstr_start_after_end);
-				$('#errorbox').show();
+				showError(tstr_start_after_end);
 			}
 			else
-				$('#errorbox').hide();
+				showError('');
 		}
 	});
 	$('.date').each(function(index,element){
@@ -116,6 +117,13 @@ function initValues () {
 	$("#channels").chosen().change( function() {$("#channels").val($(this).val());});
 	$("#tags").chosen({disable_search_threshold: 10,no_results_text: "Oops, nothing found!",width: "80%"});
 	$("#tags").chosen().change( function() {$("#tags").val($(this).val());});
+	
+	$(".chosen-container .chosen-drop").addClass('ui-widget-content');
+	if (theme == 'eggplant' || theme == 'vader')
+	{
+		$(".chosen-container .chosen-drop").css('background-image','none');
+	}
+	
 }
 
 function AddFilter(a,b,c)
@@ -251,7 +259,7 @@ function InitPage() {
 	$("#atbutton7").click(function () { getAutoTimerSettings(); });
 	// TODO: icons
 
-	$('#errorbox').hide();
+	$('#statuscont').hide();
 	$("#simdlg").dialog({
 		modal : true, 
 		overlay: { backgroundColor: "#000", opacity: 0.5 }, 
@@ -273,11 +281,14 @@ function InitPage() {
 	var buttons = {}
 	buttons["Save"] = function() {setAutoTimerSettings(); $(this).dialog("close");};
 	buttons["Cancel"] = function() {$(this).dialog("close");};
+	
+	var t = $("#atbutton7").data('title');
+	
 	$("#atsettingdlg").dialog({
 		modal : true, 
 		overlay: { backgroundColor: "#000", opacity: 0.5 }, 
 		autoOpen: false,
-		title: "AutoTimer Settings",
+		title: t,
 		width: 600,
 		height: 400,
 		buttons: buttons
@@ -312,6 +323,11 @@ function Parse() {
 	
 	var atlist = []
 	
+	var state=$(atxml).find("e2state").first();
+	if (state.text() == 'false') {
+		showError($(atxml).find("e2statetext").first().text());
+	}
+
 	$(atxml).find("timer").each(function () {
 		atlist.push($(this));
 	});
@@ -323,7 +339,7 @@ function Parse() {
 	});
 	
 	$(atlist).each(function () {
-		$("#atlist").append($("<li></li>").html($(this).attr("name")).addClass('ui-widget-content').data('id',$(this).attr("id")));
+		$("#atlist").append($("<li></li>").html($(this).attr("name")).data('id',$(this).attr("id")));
 	});
 	
 	if(at2add)
@@ -337,7 +353,9 @@ function Parse() {
 		if(item) {
 			FillAT(item.data('id'));
 			item.addClass('ui-selected');
+			item.addClass(getActiveCls());
 		}
+		setHover('#atlist li');
 	}
 }
 
@@ -715,7 +733,7 @@ function addAT(evt)
 	var xmlDoc = $.parseXML( xml )
 	
 	$(xmlDoc).find("timer").each(function () {
-		$( "#atlist" ).append($('<li></li>').html($(this).attr("name")).addClass('ui-widget-content').data('id',$(this).attr("id")));
+		$( "#atlist" ).append($('<li></li>').html($(this).attr("name")).data('id',$(this).attr("id")));
 		CurrentAT = new AutoTimerObj($(this));
 		CurrentAT.isNew = true;
 		CurrentAT.MustSave = true;
@@ -765,7 +783,6 @@ function readAT()
 			Parse();
 		},error: function (request, status, error) {
 			showError(request.responseText);
-			// TODO : error handling
 		}
 	});
 }
@@ -1029,6 +1046,9 @@ function reloadAT()
 			var ids = $('#atlist .ui-selected').map(function() {
 				FillAT($(this).data('id'));
 			});
+		},
+		classes: {
+			"ui-selected": getActiveCls()
 		}
 	});
 }
@@ -1119,15 +1139,21 @@ function setAutoTimerSettings()
 function showError(txt,st)
 {
 	st = typeof st !== 'undefined' ? st : "False";
-	$('#success').text("");
-	$('#error').text("");
-	if(st === "True")
-		$('#success').text(txt);
-	else
-		$('#error').text(txt);
-	if(txt!=="")
-		$('#errorbox').show();
-	else
-		$('#errorbox').hide();
+	
+	if (st === true || st === 'True' || st === 'true') {
+		$('#statusbox').removeClass('ui-state-error').addClass('ui-state-highlight');
+		$('#statusicon').removeClass('ui-icon-alert').addClass('ui-icon-info');
+	} else {
+		$('#statusbox').removeClass('ui-state-highlight').addClass('ui-state-error');
+		$('#statusicon').removeClass('ui-icon-info').addClass('ui-icon-alert');
+	}
+	$('#statustext').text(txt);
+	
+	if (txt !== '') {
+		$('#statuscont').show();
+	} else {
+		$('#statuscont').hide();
+	}
+	
 }
 

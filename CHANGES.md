@@ -3,13 +3,41 @@
 **FEATURES**
 * powertimer api
 
-## Version 0.5.0
-## (planed)
+## Version 1.0.3
+## (in development)
+
+## Version 1.0.2
+* add conflict info to add timer api
+* fix timer conflicts / #338
+* fix display tuner state in box info / #204
+* update mobile webinterface / #350
+* improve bouquet editor / #419
+* minor UI fixes / #421
+
+## Version 1.0.1
+* improve theme support
+* update translations
+* fix settings
+* new second multiepg / #36 #267
+* show orbital position in current info / #188
+* fix very old timer list issue / #410 , #411
+
+## Version 1.0.0
 **FEATURES**
 * removed "Smart services renaming for XBMC" and replaced with url parameter "renameserviceforxmbc=1" for getallservices 
+* new theme setting
+* allow sort recordings
+* update jQuery and jQuery UI
+* use fontawesome for some images
+* add oscam webif to extras
+* allow open (tv,radio,recording,timer,multiepg) with direct link
+* fix settings save issue
+* improve bouquet editor
+* reorg main menu
+* quit support for very old browser (with no html5 support)
+Thanks to MDXDave for some ideas to improve the UI
 
 ## Version 0.4.9
-## (in development)
 **FEATURES**
 * new api call epgservicelistnownext
 

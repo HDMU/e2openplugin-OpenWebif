@@ -30,6 +30,9 @@ from httpserver import HttpdStart, HttpdStop, HttpdRestart
 
 from __init__ import _
 
+# not used redmond -> original , trontastic , ui-lightness
+THEMES = ['original','base','black-tie','blitzer','clear','cupertino','dark-hive','dot-luv','eggplant','excite-bike','flick','hot-sneaks','humanity','le-frog','mint-choc','overcast','pepper-grinder','smoothness','south-street','start','sunny','swanky-purse','ui-darkness','vader']
+
 config.OpenWebif = ConfigSubsection()
 config.OpenWebif.enabled = ConfigYesNo(default=True)
 config.OpenWebif.identifier = ConfigYesNo(default=True)
@@ -41,10 +44,14 @@ config.OpenWebif.auth = ConfigYesNo(default=False)
 config.OpenWebif.xbmcservices = ConfigYesNo(default=False)
 config.OpenWebif.webcache = ConfigSubsection()
 # FIXME: anything better than a ConfigText?
-config.OpenWebif.webcache.collapsedmenus = ConfigText(default = "remote", fixed_size = False)
+config.OpenWebif.webcache.collapsedmenus = ConfigText(default = "", fixed_size = False)
 config.OpenWebif.webcache.remotegrabscreenshot = ConfigYesNo(default = True)
 config.OpenWebif.webcache.zapstream = ConfigYesNo(default = False)
 config.OpenWebif.webcache.epg_desc_search = ConfigYesNo(default = False)
+config.OpenWebif.webcache.theme = ConfigSelection(default = 'original', choices = THEMES )
+config.OpenWebif.webcache.moviesort = ConfigSelection(default = 'name', choices = ['','name','named','date','dated'] )
+config.OpenWebif.webcache.showchannelpicon = ConfigYesNo(default = True)
+config.OpenWebif.webcache.mepgmode = ConfigInteger(default = 1, limits=(1, 2) )
 # HTTPS
 config.OpenWebif.https_enabled = ConfigYesNo(default=False)
 config.OpenWebif.https_port = ConfigInteger(default = 443, limits=(1, 65535) )
@@ -70,6 +77,8 @@ config.OpenWebif.epg_encoding = ConfigSelection(default = 'utf-8', choices = [ '
 										'iso-8859-9',
 										'iso-8859-10',
 										'iso-8859-16'])
+
+
 imagedistro = getInfo()['imagedistro']
 
 class OpenWebifConfig(Screen, ConfigListScreen):
@@ -122,11 +131,13 @@ class OpenWebifConfig(Screen, ConfigListScreen):
 			if config.OpenWebif.auth.value:
 				self.list.append(getConfigListEntry(_("Enable Authentication for streaming"), config.OpenWebif.auth_for_streaming))
 				self.list.append(getConfigListEntry(_("Disable access for user root"), config.OpenWebif.no_root_access))
-			self.list.append(getConfigListEntry(_("Smart services renaming for XBMC"), config.OpenWebif.xbmcservices))
 			self.list.append(getConfigListEntry(_("Enable Parental Control"), config.OpenWebif.parentalenabled))
 			self.list.append(getConfigListEntry(_("Add service name to stream information"), config.OpenWebif.service_name_for_stream))
 			if imagedistro in ("VTi-Team Image"):
 				self.list.append(getConfigListEntry(_("Character encoding for EPG data"), config.OpenWebif.epg_encoding))
+			#FIXME Submenu			
+			#self.list.append(getConfigListEntry(_("Webinterface jQuery UI Theme"), config.OpenWebif.webcache.theme))
+			#self.list.append(getConfigListEntry(_("Movie List Sort"), config.OpenWebif.webcache.moviesort))
 
 		self["config"].list = self.list
 		self["config"].l.setList(self.list)

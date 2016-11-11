@@ -1,30 +1,139 @@
 #from Plugins.Extensions.OpenWebif.local import tstrings
-<div id="content_main" style="min-height: 500px;">
+<div id="content_main" class="ui-widget-content" style="min-height: 500px;background-image:none;">
 	<div id="info">
-		<h3>$tstrings['settings']</h3>
-
-		<div id="toolbar-header">
-			<span id="toolbar">
-				<span id="settingsbuttons">
+		<div style="display:table; width: 100%; zoom: 1;">
+			<div style="display:table-cell;width:220px;">
+				<h3 class="ui-widget-header">$tstrings['settings']</h3>
+				<ol class="sellist" id="slist">
+				#if $themes
+					<li id='themesbtn' class="ui-selected">$tstrings['tstr_ow_settings']</li>
+				#end if
 				#for $sec in $configsections
-					<button id='$sec["key"]' onclick="load_scontent('ajax/config?section=$sec["key"]'); return false;">$sec["description"]</button>
+					<li id='$sec["key"]' data-id='ajax/config?section=$sec["key"]'>$sec["description"]</li>
 				#end for
+				</ol>
+			</div>
+			<div class="ui-widget-header" style="display:table-cell;background: none;border-bottom:none;border-top:none;border-left:none;width:1px;"></div>
+			<div style="display:table-cell;">
+				<div style="width: 100%; zoom: 1;">
+					<div id="scontent"></div>
+					</div>
+		#if $themes
+		<div id='osettings' style="display:none;">
+			<div id="content_main2">
+				<h3 class="ui-widget-header">$tstrings['tstr_ow_browser_settings']</h3>
+				<table id="configuration">
+				<tr><td>$tstrings['tstr_theme']</td><td>
+			<select name="selectheme" id="selectheme" style="min-width: 150px;margin: 5px;border:none;font-size: 1em;">
+			#for $stheme in $themes
+				#if $stheme == $theme
+					<option selected="selected">$stheme</option>
+				#else
+					<option>$stheme</option>
+				#end if
+			#end for
+			</select>
+				</td></tr>
+				<tr><td>$tstrings['zapbeforestream']</td><td>
+				#if $zapstream
+				<input type="checkbox" name="zapstream" checked="checked"/>
+				#else
+				<input type="checkbox" name="zapstream"/>
+				#end if
+				</td></tr>
+				<tr><td>$tstrings['tstr_show_picon_in_channel_list']</td><td>
+				#if $showchannelpicon
+				<input type="checkbox" name="showchannelpicon" checked="checked"/>
+				#else
+				<input type="checkbox" name="showchannelpicon"/>
+				#end if
+				</td></tr>
+				<tr><td>$tstrings['tstr_spinner']</td><td>
+				<span class="spinner">
+				<fieldset style="border:none;" id="fsspinner">
+				<label for="fa-spinner"><i class="fa fa-spinner"></i></label>
+				<input type="radio" name="Spin" id="fa-spinner">
+				<label for="fa-spin1"><i class="fa fa-spin1"></i></label>
+				<input type="radio" name="Spin" id="fa-spin1">
+				<label for="fa-spin2"><i class="fa fa-spin2"></i></label>
+				<input type="radio" name="Spin" id="fa-spin2">
+				<label for="fa-spin3"><i class="fa fa-spin3"></i></label>
+				<input type="radio" name="Spin" id="fa-spin3">
+				<label for="fa-spin4"><i class="fa fa-spin4"></i></label>
+				<input type="radio" name="Spin" id="fa-spin4">
+				<label for="fa-spin5"><i class="fa fa-spin5"></i></label>
+				<input type="radio" name="Spin" id="fa-spin5">
+				<label for="fa-spin6"><i class="fa fa-spin6"></i></label>
+				<input type="radio" name="Spin" id="fa-spin6">
+				</fieldset>
 				</span>
-			</span>
+				</td></tr>
+				</table>
+			</div>
 		</div>
-
-		<div id="scontent"></div>
+		#end if
 		</div>
-
+		</div>
 	</div>
 </div>
-#raw
 <script type="text/javascript">
-	function load_scontent(url) {
-		$("#scontent").load(url , function () {
-			$("#scontent").find("#content_main").attr("id","content_main1");
-		});
-		return false;
-	}
+#raw
+function load_theme() {
+	$("#scontent").html('');
+	$("#osettings").show();
+	$("#selectheme").change(function() {
+	ChangeTheme($(this).val());
+	});
+	return false;
+}
+
+function load_scontent(url) {
+	$("#osettings").hide();
+	$("#scontent").load(url , function () {
+		$("#scontent").find("#content_main").attr("id","content_main1");
+	});
+	return false;
+}
+$(function() { 
+	$( "#slist" ).selectable({
+		selected: function( event, ui ) {
+			var ids = $('#slist .ui-selected').map(function() {
+				if($(this).data('id') !== undefined) {
+					load_scontent($(this).data('id'));
+				} else {
+					load_theme();
+				}
+			});
+		},
+		classes: {
+			"ui-selected": getActiveCls()
+		}
+	});
+	load_theme();
+	
+	$(".spinner input[type='radio']").checkboxradio({ icon: false });
+	$(".spinner fieldset").controlgroup();
+	var spin = GetLSValue('spinner','fa-spinner');
+	$('#'+spin).attr('checked', true).checkboxradio("refresh");
+	$(".spinner input:radio").change(function() {
+		SetLSValue('spinner',$(this).attr('id'));
+		SetSpinner();
+	});
+
+	setHover('#slist li');
+	$('#fsspinner > label').css('padding-left','10px');
+	$('#fsspinner > label').css('padding-right','10px');
+	$("#themesbtn").addClass(getActiveCls());
+
+	$("input[name=zapstream]").click(function(evt) {
+		$('input[name=zapstream]').attr('checked', evt.currentTarget.checked);
+		webapi_execute("/api/zapstream?checked=" + evt.currentTarget.checked);
+	});
+
+	$("input[name=showchannelpicon]").click(function(evt) {
+		$('input[name=showchannelpicon]').attr('checked', evt.currentTarget.checked);
+		webapi_execute("/api/showchannelpicon?checked=" + evt.currentTarget.checked);
+	});
+});
 </script>
 #end raw

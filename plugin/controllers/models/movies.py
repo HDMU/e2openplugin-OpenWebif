@@ -20,6 +20,7 @@ from Components.MovieList import MovieList
 from Tools.Directories import fileExists
 from time import strftime, localtime
 from Screens import MovieSelection
+from urllib import unquote
 
 MOVIETAGFILE = "/etc/enigma2/movietags"
 TRASHDIRNAME = "movie_trash"
@@ -104,6 +105,16 @@ def getMovieList(directory=None, tag=None, rargs=None, locations=None):
 
 	if directory is None:
 		directory = MovieSelection.defaultMoviePath()
+	else:
+		directory = unquote(directory)
+		try:
+			directory.decode('utf-8')
+		except UnicodeDecodeError:
+			try:
+				directory = directory.decode("cp1252").encode("utf-8")
+			except UnicodeDecodeError:
+				directory = directory.decode("iso-8859-1").encode("utf-8")
+
 	if not directory:
 		directory = "/media/"
 	elif directory[-1] != "/":

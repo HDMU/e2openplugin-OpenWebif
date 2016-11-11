@@ -1,45 +1,83 @@
 #from Plugins.Extensions.OpenWebif.local import tstrings
 <html>
- <head>
-	<title>OpenWebif</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta name="viewport" content="user-scalable=no, width=device-width"/>
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<link rel="stylesheet" type="text/css" href="/css/jquery.mobile-1.0.min.css" media="screen"/>
-	<link rel="stylesheet" type="text/css" href="/css/iphone.css" media="screen"/>
-	<script src="/js/jquery-1.6.2.min.js"></script>
-	<script src="/js/jquery.mobile-1.0.min.js"></script>
- </head>
- <body> 
-	<div data-role="page">
-
+<head>
+<title>OpenWebif</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="user-scalable=no, width=device-width"/>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<link rel="stylesheet" href="/css/jquery.mobile-1.4.5.min.css">
+<script src="/js/jquery.min.js"></script>
+<script src="/js/jquery.mobile-1.4.5.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/css/iphone.css" media="screen"/>
+</head>
+<body> 
+	<div data-role="page" id="chpage">
 		<div id="header">
 			<div class="button" onClick="history.back()">$tstrings['back']</div>
 			<h1><a style="color:#FFF;text-decoration:none;" href='/mobile'>OpenWebif</a></h1>
 		</div>
-
 		<div id="contentContainer">
 			<ul data-role="listview" data-inset="true" data-theme="d">
 				<li data-role="list-divider" role="heading" data-theme="b">$tstrings['channels']</li>
 				#for $channel in $channels
 				<li>
 				<a href="/mobile/channelinfo?sref=$channel.ref" style="padding: 3px;">
-				<span class="ui-li-heading" style="margin-top: 0px; margin-bottom: 3px;">$channel.name</span>
+				<h3>$channel.name</h3>
 				#if $channel.has_key('now_title')
-				<span class="ui-li-desc" style="margin-bottom: 0px;">$channel.now_title</span>
+				<p>$channel.now_title</p>
 				#end if	
 				</a>
+				<a href="#" onclick="dlg('$channel.ref', '$channel.name');return false;" aria-expanded="false" class="ui-btn ui-btn-icon-notext ui-icon-gear ui-btn-a" title="...more"></a>
 				</li>
 				#end for
 			</ul>
 		</div>
-
 		<div id="footer">
 			<p>OpenWebif Mobile</p>
 			<a onclick="document.location.href='/index?mode=fullpage';return false;" href="#">$tstrings['show_full_openwebif']</a>
 		</div>
-		
+
+	<div data-role="popup" id="stream" data-theme="b">
+		<div data-role="content" data-theme="b">
+			<span class="title">Stream</span>
+			<a href="#home" onclick="zapChannel();" data-role="button" data-theme="a">$tstrings['zap']</a>
+			<a href="#home" onclick="jumper('etc');" data-role="button" data-theme="a">$tstrings['stream']</a>
+			#if $transcoding
+			<a href="#home" onclick="jumper('phone');" data-role="button" data-theme="a">$tstrings['stream'] ($tstrings['transcoded'])</a>
+			#end if
+			<a href="#home" data-role="button" data-theme="d" data-rel="back">Cancel</a>
+		</div>
 	</div>
- </body>
+
+	<form name="portForm" action="/web/stream.m3u" method="GET" target="_blank">
+		<input type="hidden" name="ref">
+		<input type="hidden" name="name">
+		<input type="hidden" name="device">
+	</form>
+<script>
+#raw
+jQuery('#chpage').on('pageinit', function(event) {
+	$("#stream").popup();
+});
+var sref='';
+var sname='';
+function zapChannel() {
+	$.ajax('/api/zap?sRef=' + escape(sref));
+}
+function jumper(mode) {
+	document.portForm.ref.value = sref;
+	document.portForm.name.value = sname;
+	document.portForm.device.value = mode;
+	document.portForm.submit();
+}
+function dlg(a,b)
+{
+	sref = a;
+	sname = b;
+	$("#stream").popup("open"); 
+}
+</script>
+#end raw
+</div>
+</body>
 </html>
-      

@@ -78,6 +78,19 @@ def getZapStream():
 		"zapstream": config.OpenWebif.webcache.zapstream.value
 	}
 
+def setShowChPicon(value):
+	config.OpenWebif.webcache.showchannelpicon.value = value
+	config.OpenWebif.webcache.showchannelpicon.save()
+	return {
+		"result": True
+	}
+
+def getShowChPicon():
+	return {
+		"result": True,
+		"showchannelpicon": config.OpenWebif.webcache.showchannelpicon.value
+	}
+
 def getShowName():
 	return {
 		"result": True,
@@ -97,7 +110,7 @@ def getBoxName():
 	}
 
 def getJsonFromConfig(cnf):
-	if cnf.__class__.__name__ == "ConfigSelection" or cnf.__class__.__name__ == "ConfigSelectionNumber":
+	if cnf.__class__.__name__ == "ConfigSelection" or cnf.__class__.__name__ == "ConfigSelectionNumber" or cnf.__class__.__name__ == "TconfigSelection":
 		if type(cnf.choices.choices) == dict:
 			choices = []
 			for choice in cnf.choices.choices:
@@ -115,7 +128,7 @@ def getJsonFromConfig(cnf):
 			"result": True,
 			"type": "select",
 			"choices": choices,
-			"current": cnf.value
+			"current": str(cnf.value)
 		}
 	elif cnf.__class__.__name__ == "ConfigBoolean" or cnf.__class__.__name__ == "ConfigEnableDisable" or cnf.__class__.__name__ == "ConfigYesNo":
 		return {
@@ -137,7 +150,7 @@ def getJsonFromConfig(cnf):
 			"type": "number",
 			"current": cnf.value
 		}
-	elif cnf.__class__.__name__ == "ConfigInteger":
+	elif cnf.__class__.__name__ == "ConfigInteger" or cnf.__class__.__name__ == "TconfigInteger":
 		return {
 			"result": True,
 			"type": "number",
@@ -172,7 +185,7 @@ def saveConfig(path, value):
 			cnf.value = values
 		elif cnf.__class__.__name__ == "ConfigNumber":
 			cnf.value = int(value)
-		elif  cnf.__class__.__name__ == "ConfigInteger":
+		elif  cnf.__class__.__name__ == "ConfigInteger" or cnf.__class__.__name__ == "TconfigInteger":
 			cnf_min = int(cnf.limits[0][0])
 			cnf_max = int(cnf.limits[0][1])
 			cnf_value = int(value)

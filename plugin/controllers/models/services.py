@@ -149,10 +149,13 @@ def getCurrentFullInfo(session):
 	frontendData = feinfo and feinfo.getAll(True)
 
 	if frontendData is not None:
+		cur_info = feinfo.getTransponderData(True)
 		inf['tunertype'] = frontendData.get("tuner_type", "UNKNOWN")
 		if frontendData.get("system", -1) == 1:
 			inf['tunertype'] = "DVB-S2"
 		inf['tunernumber'] = frontendData.get("tuner_number")
+		if cur_info:
+			inf['orbital_position'] = cur_info.get('orbital_position', None)
 	else:
 		inf['tunernumber'] = "N/A"
 		inf['tunertype'] = "N/A"
@@ -338,10 +341,11 @@ def getChannels(idbouquet, stype):
 	services = serviceHandler.list(eServiceReference(idbouquet))
 	channels = services and services.getContent("SN", True)
 	for channel in channels:
+		chan = {}
+		chan['ref'] = quote(channel[0], safe=' ~@%#$&()*!+=:;,.?/\'')
+		chan['name'] = filterName(channel[1])
 		if not int(channel[0].split(":")[1]) & 64:
-			chan = {}
-			chan['ref'] = quote(channel[0], safe=' ~@%#$&()*!+=:;,.?/\'')
-			chan['name'] = filterName(channel[1])
+			chan['picon'] = getPicon(chan['ref'])
 			if config.OpenWebif.parentalenabled.value and config.ParentalControl.configured.value and config.ParentalControl.servicepinactive.value:
 				chan['protection'] = getProtection(channel[0])
 			else:
@@ -363,7 +367,7 @@ def getChannels(idbouquet, stype):
 				chan['next_ev_id'] = nextevent[0][3]
 				chan['next_idp'] = "nextd" + str(idp)
 				idp += 1
-			ret.append(chan)
+		ret.append(chan)
 	return { "channels": ret }
 
 def getServices(sRef, showAll = True, showHidden = False):
@@ -760,7 +764,7 @@ def getSearchSimilarEpg(ref, eventid):
 	return { "events": ret, "result": True }
 
 
-def getMultiEpg(self, ref, begintime=-1, endtime=None):
+def getMultiEpg(self, ref, begintime=-1, endtime=None, Mode=1):
 	# Check if an event has an associated timer. Unfortunately
 	# we cannot simply check against timer.eit, because a timer
 	# does not necessarily have one belonging to an epg event id.
@@ -827,16 +831,25 @@ def getMultiEpg(self, ref, begintime=-1, endtime=None):
 			ev['shortdesc'] = convertDesc(event[3])
 			ev['ref'] = event[4]
 			ev['timerStatus'] = getTimerEventStatus(event)
+			if Mode == 2:
+				ev['duration'] = event[6]
 
 			channel = filterName(event[5])
 			if not ret.has_key(channel):
-				ret[channel] = [ [], [], [], [], [], [], [], [], [], [], [], [] ]
+				if Mode == 1:
+					ret[channel] = [ [], [], [], [], [], [], [], [], [], [], [], [] ]
+				else:
+					ret[channel] = [[]]
 				picons[channel] = getPicon(event[4])
 
-			slot = int((event[1]-offset) / 7200)
-			if slot > -1 and slot < 12 and event[1] < lastevent:
-				ret[channel][slot].append(ev)
-
+			if Mode == 1:
+				slot = int((event[1]-offset) / 7200)
+				if slot < 0:
+					slot = 0
+				if slot < 12 and event[1] < lastevent:
+					ret[channel][slot].append(ev)
+			else:
+				ret[channel][0].append(ev)
 	return { "events": ret, "result": True, "picons": picons }
 
 def getPicon(sname):
@@ -866,6 +879,9 @@ def getPicon(sname):
 		if fileExists(filename):
 			return "/picon/" + sname
 	if cname is not None: # picon by channel name
+		cname1 = cname.replace('\xc2\x86','').replace('\xc2\x87', '').replace('/', '_').encode('utf-8', 'ignore')
+		if fileExists(getPiconPath() + cname1 + ".png"):
+			return "/picon/" + cname1 + ".png"
 		cname = unicodedata.normalize('NFKD', unicode(cname, 'utf_8', errors='ignore')).encode('ASCII', 'ignore')
 		cname = re.sub('[^a-z0-9]', '', cname.replace('&', 'and').replace('+', 'plus').replace('*', 'star').lower())
 		if len(cname) > 0:

@@ -22,7 +22,7 @@ from models.locations import getLocations, getCurrentLocation, addLocation, remo
 from models.timers import getTimers, addTimer, addTimerByEventId, editTimer, removeTimer, toggleTimerStatus, cleanupTimer, writeTimerList, recordNow, tvbrowser, getSleepTimer, setSleepTimer, getPowerTimer, setPowerTimer, getVPSChannels
 from models.message import sendMessage, getMessageAnswer
 from models.movies import getMovieList, removeMovie, getMovieTags, moveMovie, renameMovie, getAllMovies
-from models.config import getSettings, addCollapsedMenu, removeCollapsedMenu, setRemoteGrabScreenshot, setZapStream, saveConfig, getZapStream, setEPGSearchType
+from models.config import getSettings, addCollapsedMenu, removeCollapsedMenu, setRemoteGrabScreenshot, setZapStream, saveConfig, getZapStream, setEPGSearchType, setShowChPicon
 from models.stream import getStream, getTS, getStreamSubservices
 from models.servicelist import reloadServicesLists
 from models.mediaplayer import mediaPlayerAdd, mediaPlayerRemove, mediaPlayerPlay, mediaPlayerCommand, mediaPlayerCurrent, mediaPlayerList, mediaPlayerLoad, mediaPlayerSave, mediaPlayerFindFile
@@ -207,13 +207,7 @@ class WebController(BaseController):
 					service["servicename"] = "%d - %s" % (count + 1, service["servicename"])
 					count += 1
 			return bouquets
-		
-# TODO : remove this if the setting is removed
-		if not config.OpenWebif.xbmcservices.value:
-			return getAllServices(type)
 
-# TODO : remove this if the setting is removed
-		# rename services for xbmc
 		bouquets = getAllServices(type)
 		count = 0
 		for bouquet in bouquets["services"]:
@@ -966,6 +960,12 @@ class WebController(BaseController):
 			return res
 		return setZapStream(request.args["checked"][0] == "true")
 
+	def P_showchannelpicon(self, request):
+		res = self.testMandatoryArguments(request, ["checked"])
+		if res:
+			return res
+		return setShowChPicon(request.args["checked"][0] == "true")
+
 	def P_epgsearchtype(self, request):
 		res = self.testMandatoryArguments(request, ["checked"])
 		if res:
@@ -976,7 +976,7 @@ class WebController(BaseController):
 		self.isCustom = True
 		if getZapStream()['zapstream']:
 			if "ref" in request.args:
-				zapService(self.session, request.args["ref"][0], request.args["name"][0])
+				zapService(self.session, request.args["ref"][0], request.args["name"][0], stream=True)
 		return getStream(self.session,request,"stream.m3u")
 
 	def P_tsm3u(self,request):
@@ -1184,4 +1184,39 @@ class WebController(BaseController):
 					"lang": subt[4]
 				})
 		return ret
+
+	def P_settheme(self, request):
+		if "theme" in request.args.keys():
+			theme = request.args["theme"][0]
+			config.OpenWebif.webcache.theme.value = theme
+			config.OpenWebif.webcache.theme.save()
+		return {}
+
+	def P_setmoviesort(self, request):
+		if "nsort" in request.args.keys():
+			nsort = request.args["nsort"][0]
+			config.OpenWebif.webcache.moviesort.value = nsort
+			config.OpenWebif.webcache.moviesort.save()
+		return {}
+
+	def P_css(self, request):
+		request.setHeader("content-type", "text/css")
+		ret = {}
+		if config.OpenWebif.webcache.theme.value:
+			ret['theme'] = config.OpenWebif.webcache.theme.value
+		else:
+			ret['theme'] = 'redmond'
+		return ret
+
+	def P_setmepgmode(self, request):
+		if "mode" in request.args.keys():
+			try:
+				mode = request.args["mode"][0]
+				config.OpenWebif.webcache.mepgmode.value = int(mode)
+				config.OpenWebif.webcache.mepgmode.save()
+			except Exception, e:
+				pass
+		return {}
+	
+
 

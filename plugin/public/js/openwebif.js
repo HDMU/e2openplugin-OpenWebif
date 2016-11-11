@@ -1,11 +1,15 @@
 //******************************************************************************
 //* openwebif.js: openwebif base module
-//* Version 1.0
+//* Version 2.3
 //******************************************************************************
 //* Copyright (C) 2011-2014 E2OpenPlugins
 //*
 //* V 1.0 - Initial Version
 //* V 1.1 - add movie move and rename
+//* V 2.0 - movie sort object, spinner, theme support, ...
+//* V 2.1 - support timer conflicts / fix IE cache issue
+//* V 2.2 - remove sync requests
+//* V 2.3 - prepare web tv / better timer conflicts
 //*
 //* Authors: skaman <sandro # skanetwork.com>
 //* 		 meo
@@ -20,10 +24,14 @@
 //*******************************************************************************
 
 $.fx.speeds._default = 1000;
-var loadspinner = "<div id='spinner' ><img src='../images/spinner.gif' alt='loading...' /></div>",mutestatus = 0,lastcontenturl = null,screenshotMode = 'all',MessageAnswerCounter=0,shiftbutton = false,grabTimer = 0,at2add = null;
+var theme='original',loadspinner = "<div id='spinner'><div class='fa fa-spinner fa-spin'></div></div>",mutestatus = 0,lastcontenturl = null,screenshotMode = 'all',MessageAnswerCounter=0,shiftbutton = false,grabTimer = 0,at2add = null,_location = [],_tags = [],current_ref=null,current_name=null;
 
 $(function() {
 	
+	SetSpinner();
+	
+// no execption on popup window
+try {
 	$( "#dialog" ).dialog({
 		autoOpen: false,
 		show: "fade",
@@ -75,6 +83,13 @@ $(function() {
 				primary: "ui-icon-search"
 				}
 		});
+
+	_locations = loadLocations();
+	_tags = loadTags();
+
+}
+catch(err) {}
+
 });
 
 
@@ -193,27 +208,37 @@ function initJsTranslation(strings) {
 	tstr_timernewname = strings.timer_newname;
 	
 	tstr_open_in_new_window = strings.open_in_new_window;
+	tstr_error_load_page = strings.tstr_error_load_page;
+	tstr_timer_added = strings.tstr_timer_added;
+	tstr_event_not_found = strings.tstr_event_not_found;
+	
+	tstr_channel = strings.channel;
+	tstr_end = strings.begin;
+	tstr_begin = strings.end;
+
 }
 
 function wait_for_openwebif() {
 	var restartCheck = window.setInterval(function() {
-		$.getJSON('/api/statusinfo').success(function() {
-			window.clearInterval(restartCheck);
-			$("#modaldialog").dialog('close');
-			location.reload();
-		});
+		webapi_execute('/api/statusinfo',
+			function() {
+				window.clearInterval(restartCheck);
+				$("#modaldialog").dialog('close');
+				location.reload();
+			});
 	}, 2000);
 }
 
 function handle_power_state_dialog(new_power_state) {
 	var timeout = 0;
+	var sp = loadspinner.replace("'spinner'","'spinner1'");
 	$("#modaldialog").dialog('close');
 	if ( new_power_state === 2 ) {
-		load_info_dialog('ajax/rebootdialog',tstr_reboot_box);
+		load_reboot_dialog(sp,tstr_reboot_box);
 		wait_for_openwebif();
 		timeout = 1000 ;
 	} else if ( new_power_state === 3 ) {
-		load_info_dialog('ajax/rebootdialog',tstr_restart_gui);
+		load_reboot_dialog(sp,tstr_restart_gui);
 		wait_for_openwebif();
 		timeout = 1000 ;
 	}
@@ -222,30 +247,21 @@ function handle_power_state_dialog(new_power_state) {
 	}, timeout);
 }
 
-function load_info_dialog(url,title,w,h){
-	var width = 'auto',height='auto';
-	if (typeof w !== 'undefined')
-		width = w;
-	if (typeof h !== 'undefined')
-		height = h;
+function load_reboot_dialog(data,title){
 
-	$.ajax({
-		url: url,
-		success: function(data) {
-			$("#modaldialog").html(data).dialog({
-				modal:true,
-				title:title,
-				autoOpen:true,
-				width:width,
-				height:height,
-				close: function(event, ui) { 
-					$(this).dialog('destroy');
-				},
-			});
-		},error: function(){
-			alert('error! Loading Page');
+	$("#modaldialog").html(data).dialog({
+		modal:true,
+		title:title,
+		autoOpen:true,
+		width:'auto',
+		height:'auto',
+		open: function (event, ui) {
+			$('#modaldialog').css('overflow', 'hidden'); 
+		},
+		close: function(event, ui) { 
+			$(this).dialog('destroy');
+			$("#modaldialog").html('');
 		}
-		
 	});
 }
 
@@ -264,8 +280,12 @@ function load_dm_spinner(url,title,w,h,buttons){
 		width:width,
 		height:height,
 		buttons:buttons,
+		create: function(event, ui) {
+	        $(event.target).parent().css('position', 'fixed');
+	    },
 		close: function(event, ui) { 
 			$(this).dialog('destroy');
+			$("#modaldialog").html('');
 		},
 		open: function() {
 		$.ajax({
@@ -274,7 +294,7 @@ function load_dm_spinner(url,title,w,h,buttons){
 				$("#modaldialog").html(data);
 			}
 			,error: function(){
-				$("#modaldialog").html("error! Loading Page");
+				$("#modaldialog").html(tstr_error_load_page);
 			}
 		});
 		$(this).siblings('.ui-dialog-buttonpane').find('button:eq(0)').focus(); 
@@ -303,13 +323,14 @@ function load_dm(url,title,w,h){
 				buttons:buttons,
 				close: function(event, ui) { 
 					$(this).dialog('destroy');
+					$("#modaldialog").html('');
 				},
 				open: function() {
 					$(this).siblings('.ui-dialog-buttonpane').find('button:eq(0)').focus(); 
 				}
 			});
 		},error: function(){
-			alert('error! Loading Page');
+			alert(tstr_error_load_page);
 		}
 		
 	});
@@ -331,6 +352,7 @@ function load_message_dm(url,title){
 				buttons: buttons,
 				close: function(event, ui) { 
 					$(this).dialog('destroy');
+					$("#modaldialog").html('');
 				}
 			});
 		}
@@ -353,7 +375,7 @@ function load_tvcontent_spin(url) {
 }
 
 function load_maincontent(url) {
-	if (lastcontenturl != url) {
+	if (lastcontenturl != url || ( url.indexOf('screenshot') > -1 ) || ( url.indexOf('timer') > -1 ) || ( url.indexOf('boxinfo') > -1 )) {
 		$("#content_container").load(url);
 		lastcontenturl = url;
 	}
@@ -370,11 +392,11 @@ function load_maincontent_spin(url) {
 }
 
 function webapi_execute(url, callback) {
-	var jqxhr = $.ajax( url ).done(function() { 
-    		if (typeof callback !== 'undefined') {
-    			callback();
-    		}
-    	});
+	var jqxhr = $.ajax({ url: url, cache: false, async: false}).done(function() { 
+	if (typeof callback !== 'undefined') {
+			callback();
+		}
+	});
 	return false;
 }
 
@@ -398,16 +420,6 @@ function open_epg_dialog(sRef,Name) {
 	load_dm_spinner(url,Name,w,h,buttons);
 }
 
-function open_epg_pop(sRef) {
-	var url = 'ajax/epgpop?sref=' + escape(sRef);
-	$.popupWindow(url, {
-		height: 500,
-		width: 900,
-		toolbar: false,
-		scrollbars: true
-	});	
-}
-
 function open_epg_search_dialog() {
 	var spar = $("#epgSearch").val();
 	var url = "ajax/epgdialog?sstr=" + encodeURIComponent(spar);
@@ -423,39 +435,108 @@ function open_epg_search_dialog() {
 	load_dm_spinner(url,tstr_epgsearch,w,h,buttons);
 }
 
-function open_epg_search_pop(spar) {
-	var url = "ajax/epgpop?sstr=" + encodeURIComponent(spar);
+function _epg_pop(url) {
 	$.popupWindow(url, {
-		height: 500,
-		width: 900,
+		height: $(window).height(),
+		width: $(window).width(),
 		toolbar: false,
 		scrollbars: true
+	});	
+}
+
+function open_epg_search_pop(spar) {
+	_epg_pop("ajax/epgpop?sstr=" + encodeURIComponent(spar));
+}
+
+function open_epg_pop(sRef) {
+	_epg_pop('ajax/epgpop?sref=' + escape(sRef));
+}
+
+function TimerConflict(conflicts,sRef, eventId, justplay)
+{
+	// !!! TODO !!!
+	// the first conflict entry is the new timer but this new timer don't exits
+	// If there is a deactivate button we need to create the new timer again
+	// sRef, eventId, justplay are needed to create the new timer
+	var SplitText = "<div class='tbltc'><div><div>Name</div><div>"+tstr_channel+"</div><div>"+tstr_end+"</div><div>"+tstr_begin+"</div></div>";
+	conflicts.forEach(function(entry) {
+		SplitText +="<div><div>"+entry.name+"</div><div>"+entry.servicename+"</div><div>"+entry.realbegin+"</div><div>"+entry.realend+"</div></div>";
+	});
+
+	SplitText +="</div>";
+	var buttons = {};
+	buttons[tstr_close] = function() { $(this).dialog("close");};
+	$('<div></div>').dialog({
+		modal: true,
+		height: 500,
+		width: 600,
+		autoOpen:true,
+		title: "Timer Conflicts",
+		open: function () {
+			$(this).html(SplitText);
+		}, buttons: buttons
 	});
 }
 
-function addTimerEvent(sRef, eventId) {
-	webapi_execute("/api/timeraddbyeventid?sRef=" + sRef + "&eventid=" + eventId,
-		function() {
-			alert("Timer Added"); 
-		} 
-	);
+function webapi_execute_result(url, callback) {
+	$.ajax({
+		async: false,
+		url: url,
+		cache : false,
+		success: function(data) {
+			result = $.parseJSON(data);
+			if (typeof callback !== 'undefined') {
+				if(result)
+					callback(result.result,result.message,result.conflicts);
+				else
+					callback(false,'error');
+			}
+		}
+	});
 }
-function addTimerEventPlay(sRef, eventId) {
-	webapi_execute("/api/timeraddbyeventid?sRef=" + sRef + "&eventid=" + eventId + "&eit=0&disabled=0&justplay=1&afterevent=3",
-		function() {
-			alert("Timer Added"); 
-		} 
+
+function addTimerEvent(sRef, eventId, justplay) {
+
+	var url = "/api/timeraddbyeventid?sRef=" + sRef + "&eventid=" + eventId;
+	if(justplay)
+		url += "&eit=0&disabled=0&justplay=1&afterevent=3";
+
+	webapi_execute_result(url,
+		function(state,txt,conflicts) {
+			if (!state && conflicts)
+				TimerConflict(conflicts,sRef,eventId,justplay);
+			else
+				alert( state ? tstr_timer_added : txt );
+		}
 	);
 }
 
+/*
+function addTimerEventPlay(sRef, eventId) {
+	webapi_execute_result("/api/timeraddbyeventid?sRef=" + sRef + "&eventid=" + eventId + "&eit=0&disabled=0&justplay=1&afterevent=3",
+		function(state,txt,conflicts) {
+			if (!state && conflicts)
+				TimerConflict(conflicts,sRef,eventId,True);
+			else
+				alert( state ? tstr_timer_added : txt );
+		}
+	);
+}
+*/
+
 function addEditTimerEvent(sRef, eventId) {
 	var url="/api/event?sref=" + sRef + "&idev=" + eventId;
-	$.getJSON(url, function(result){
-		if (typeof result !== 'undefined' && typeof result.event !== 'undefined') {
-			addTimer(result.event);
-		}
-		else
-			alert("Event not found");
+	$.ajax({
+		url: url,
+		dataType: "json",
+		success: function(result) { 
+			if (typeof result !== 'undefined' && typeof result.event !== 'undefined') {
+				addTimer(result.event);
+			}
+			else
+				alert(tstr_event_not_found);
+		},
+		error: function(data) {}
 	});
 }
 
@@ -467,36 +548,70 @@ function addAutoTimerEvent(sRef, sname, title ,begin, end) {
 			"sref" : sRef,
 			"sname" : sname
 		};
+
+		lastcontenturl = '';
 		
-		var atd=$('#atdialog');
-		if (atd != 'undefined')
-		{
-			$("#content_container").load('/ajax/at', function() { 
-				$("#atdialog").show(200).draggable();
-			});
+		if ($("#compressmepg").is(":visible"))
+			CompressMEPG();
+
+		if ($("#modaldialog").hasClass('ui-dialog-content')) {
+			$("#modaldialog").dialog('destroy');
+			$("#modaldialog").html('');
 		}
-		else {
+
+		if ($("#eventdescription").hasClass('ui-dialog-content')) {
+			$("#eventdescription").dialog('destroy');
+			$("#eventdescription").html('');
+		}
 		
-		// open the autotimer edit view with a new autotimer
 		load_maincontent('ajax/at');
-		
-		}
-		$("#modaldialog").dialog('destroy');
-		
 }
 
-function delTimerEvent(obj) {
-	// TODO: get timerinfo from event
+function delTimerEvent(sRef,eventId) {
+
+	var url="/api/event?sref=" + sRef + "&idev=" + eventId;
+	$.ajax({
+		url: url,
+		dataType: "json",
+		success: function(result) { 
+			if (typeof result !== 'undefined' && typeof result.event !== 'undefined') {
+				// FIXME : this will not work if the timer is modified
+				var begin = result.event.begin - 60 * result.event.recording_margin_before;
+				var end = result.event.begin + result.event.duration + 60 * result.event.recording_margin_after;
+				var t = decodeURIComponent(result.event.title);
+				if (confirm(tstr_del_timer + ": " + t) === true) {
+					webapi_execute("/api/timerdelete?sRef=" + sRef + "&begin=" + begin + "&end=" + end, 
+						function() { $('.event[data-id='+eventId+'] .timer').remove(); } 
+					);
+				}
+			}
+			else
+				alert(tstr_event_not_found);
+		},
+		error: function(data) {}
+	});
+
 }
 
 function toggleTimerStatus(sRef, begin, end) {
 	var url="/api/timertogglestatus?";
 	var data = { sRef: sRef, begin: begin, end: end };
-	$.getJSON(url, data, function(result){
-		var obj = $('#img-'+begin+'-'+end);
-		obj.removeClass("ow_i_disabled");
-		obj.removeClass("ow_i_enabled");
-		obj.addClass(result['disabled'] ? "ow_i_disabled" : "ow_i_enabled");
+	
+	$.ajax({
+		url: url,
+		dataType: "json",
+		data:data,
+		success: function(result) { 
+			
+			$('#img-'+begin+'-'+end + ' > i').each( function (){ 
+				if( $(this).data("ref") == sRef) {
+					$(this).removeClass("fa-square-o");
+					$(this).removeClass("fa-check-square-o");
+					$(this).addClass(result['disabled'] ? "fa-square-o" : "fa-check-square-o");
+				}
+			});
+		},
+		error: function(data) {}
 	});
 }
 
@@ -535,7 +650,9 @@ function playRecording(sRef) {
 	// for debugging 
 	console.debug(sr);
 	var url = '/api/zap?sRef=' + sr;
-	$.getJSON(url, function(result){
+	
+	webapi_execute(url,
+	function() {
 		$("#osd").html(" ");
 		$("#osd_bottom").html(" ");
 	});
@@ -543,7 +660,8 @@ function playRecording(sRef) {
 
 function zapChannel(sRef, sname) {
 	var url = '/api/zap?sRef=' + escape(sRef);
-	$.getJSON(url, function(result){
+	webapi_execute(url,
+	function() {
 		$("#osd").html(tstr_zap_to + ': ' + sname);
 		$("#osd_bottom").html(" ");
 	});
@@ -557,12 +675,64 @@ function toggleStandby() {
 	setTimeout(getStatusInfo, 1500);
 }
 
+function setOSD( statusinfo )
+{
+
+	var sref = current_ref = statusinfo['currservice_serviceref'];
+	var station = current_name = statusinfo['currservice_station'];
+	
+	if (station) {
+		var stream = "<div id='osdicon'>";
+		var streamtitle = tstr_stream + ": " + station + "'><i class='fa fa-desktop'></i></a>";
+		var streamtitletrans = tstr_stream + " (" + tstr_transcoded + "): " + station + "'><i class='fa fa-mobile'></i></a>";
+		var _osdch = "<span class='osdch'>" + station + "</span></a>&nbsp;&nbsp;";
+		var _beginend = _osdch + statusinfo['currservice_begin'] + " - " + statusinfo['currservice_end'] + "&nbsp;&nbsp;";
+		
+		if ((sref.indexOf("1:0:1") !== -1) || (sref.indexOf("1:134:1") !== -1)) {
+			if (statusinfo['transcoding']) {
+				stream += "<a href='#' onclick=\"jumper8001('" + sref + "', '" + station + "')\"; title='" + streamtitle;
+				stream += "<a href='#' onclick=\"jumper8002('" + sref + "', '" + station + "')\"; title='" + streamtitletrans;
+			} else {
+				stream += "<a target='_blank' href='/web/stream.m3u?ref=" + sref + "&name=" + station + "' title='" + streamtitle;
+			}
+			stream +="</div>";
+			$("#osd").html(stream + "<a href='#' onClick='load_maincontent(\"ajax/tv\");return false;'>" + _beginend + "<a style='text-decoration:none;' href=\"#\" onclick=\"open_epg_pop('" + sref + "')\" title='" + statusinfo['currservice_fulldescription'] + "'>" + statusinfo['currservice_name'] + "</a>");
+		} else if ((sref.indexOf("1:0:2") !== -1) || (sref.indexOf("1:134:2") !== -1)) {
+			stream += "<a target='_blank' href='/web/stream.m3u?ref=" + sref + "&name=" + station + "' title='" + streamtitle;
+			stream +="</div>";
+			$("#osd").html(stream + "<a href='#' onClick='load_maincontent(\"ajax/radio\");return false;'>" + _beginend + "<a style='text-decoration:none;' href=\"#\" onclick=\"open_epg_pop('" + sref + "')\" title='" + statusinfo['currservice_fulldescription'] + "'>" + statusinfo['currservice_name'] + "</a>");
+		} else if (sref.indexOf("1:0:0") !== -1) {
+			if (statusinfo['transcoding']) {
+				stream += "<a href='#' onclick=\"jumper80('" + statusinfo['currservice_filename'] + "')\"; title='" + streamtitle;
+				stream += "<a href='#' onclick=\"jumper8003('" + statusinfo['currservice_filename'] + "')\"; title='" + streamtitletrans;
+			} else {
+				stream += "<a target='_blank' href='/web/ts.m3u?file=" + statusinfo['currservice_filename'] + "' title='" + streamtitle;
+			}
+			stream +="</div>";
+			$("#osd").html(stream + _beginend + statusinfo['currservice_name']);
+		} else {
+			$("#osd").html(_beginend + statusinfo['currservice_name']);
+		}
+		$("#osd_bottom").html(statusinfo['currservice_description']);
+	} else {
+		$("#osd").html(tstr_nothing_play);
+		$("#osd_bottom").html('');
+	}
+
+}
+
 function getStatusInfo() {
-	$.ajaxSetup({ cache: false });
-	$.getJSON('/api/statusinfo').success(function(statusinfo) {
+
+	$.ajax({
+		url: '/api/statusinfo',
+		dataType: "json",
+		cache: false,
+		success: function(statusinfo) { 
 		// Set Volume
 		$("#slider").slider("value", statusinfo['volume']);
 		$("#amount").val(statusinfo['volume']);
+
+// TODO: remove images
 		
 		// Set Mute Status
 		if (statusinfo['muted'] == true) {
@@ -572,44 +742,23 @@ function getStatusInfo() {
 			mutestatus = 0;
 			$("#volimage").attr("src","/images/volume.png");
 		}
-
-		if ((statusinfo['currservice_station']) && ((statusinfo['currservice_serviceref'].indexOf("1:0:1") !== -1) || (statusinfo['currservice_serviceref'].indexOf("1:134:1") !== -1))) {
-			var stream = "";
-			if (statusinfo['transcoding']) {
-				stream += "<a href='#' onclick=\"jumper8001('" + statusinfo['currservice_serviceref'] + "', '" + statusinfo['currservice_station'] + "')\"; title='" + tstr_stream + ": " + statusinfo['currservice_station'] + "'><img src='../images/ico_stream.png'></img></a>&nbsp;";
-				stream += "<a href='#' onclick=\"jumper8002('" + statusinfo['currservice_serviceref'] + "', '" + statusinfo['currservice_station'] + "')\"; title='" + tstr_stream + " (" + tstr_transcoded + "): " + statusinfo['currservice_station'] + "'><img src='../images/ico_stream02.png'></img></a>&nbsp;";
-			} else {
-				stream += "<a target='_blank' href='/web/stream.m3u?ref=" + statusinfo['currservice_serviceref'] + "&name=" + statusinfo['currservice_station'] + "' title='" + tstr_stream + ": " + statusinfo['currservice_station'] + "'><img src='../images/ico_stream.png'></img></a>&nbsp;";
-			}
-			$("#osd").html(stream + "<span style='color:#EA7409;font-weight:bold'><a style='color:#EA7409;font-weight:bold;text-decoration:none;' href='#' onClick='load_maincontent(\"ajax/tv\");return false;'>" + statusinfo['currservice_station'] + "</a></span>&nbsp;&nbsp;" + statusinfo['currservice_begin'] + " - " + statusinfo['currservice_end'] + "&nbsp;&nbsp;" + "<a style='color:#ffffff;text-decoration:none;' href=\"#\" onclick=\"open_epg_pop('" + statusinfo['currservice_serviceref'] + "')\" title='" + statusinfo['currservice_fulldescription'] + "'>" + statusinfo['currservice_name'] + "</a>");
-			$("#osd_bottom").html(statusinfo['currservice_description']);
-		} else if ((statusinfo['currservice_station']) && ((statusinfo['currservice_serviceref'].indexOf("1:0:2") !== -1) || (statusinfo['currservice_serviceref'].indexOf("1:134:2") !== -1))) {
-			var stream = "";
-			stream += "<a target='_blank' href='/web/stream.m3u?ref=" + statusinfo['currservice_serviceref'] + "&name=" + statusinfo['currservice_station'] + "' title='" + tstr_stream + ": " + statusinfo['currservice_station'] + "'><img src='../images/ico_stream.png'></img></a>&nbsp;";
-			$("#osd").html(stream + "<span style='color:#EA7409;font-weight:bold;'>" + "<a style='color:#EA7409;font-weight:bold;text-decoration:none;' href='#' onClick='load_maincontent(\"ajax/radio\");return false;'>" + statusinfo['currservice_station'] + "</a></span>&nbsp;&nbsp;" + statusinfo['currservice_begin'] + " - " + statusinfo['currservice_end'] + "&nbsp;&nbsp;" + "<a style='color:#ffffff;text-decoration:none;' href=\"#\" onclick=\"open_epg_pop('" + statusinfo['currservice_serviceref'] + "')\" title='" + statusinfo['currservice_fulldescription'] + "'>" + statusinfo['currservice_name'] + "</a>");
-			$("#osd_bottom").html(statusinfo['currservice_description']);
-		} else if ((statusinfo['currservice_station']) && ((statusinfo['currservice_serviceref'].indexOf("1:0:0") !== -1))) {
-			var stream = "";
-			if (statusinfo['transcoding']) {
-				stream += "<a href='#' onclick=\"jumper80('" + statusinfo['currservice_filename'] + "')\"; title='" + tstr_stream + ": " + statusinfo['currservice_station'] + "'><img src='../images/ico_stream.png'></img></a>&nbsp;";
-				stream += "<a href='#' onclick=\"jumper8003('" + statusinfo['currservice_filename'] + "')\"; title='" + tstr_stream + " (" + tstr_transcoded + "): " + statusinfo['currservice_station'] + "'><img src='../images/ico_stream02.png'></img></a>&nbsp;";
-			} else {
-				stream += "<a target='_blank' href='/web/ts.m3u?file=" + statusinfo['currservice_filename'] + "' title='" + tstr_stream + ": " + statusinfo['currservice_station'] + "'><img src='../images/ico_stream.png'></img></a>&nbsp;";
-			}
-			$("#osd").html(stream + "<span style='color:#EA7409;font-weight:bold;'>" + statusinfo['currservice_station'] + "</span>&nbsp;&nbsp;" + statusinfo['currservice_begin'] + " - " + statusinfo['currservice_end'] + "&nbsp;&nbsp;" + statusinfo['currservice_name']);
-			$("#osd_bottom").html(statusinfo['currservice_description']);
-		} else if (statusinfo['currservice_station']) {
-			$("#osd").html("<span style='color:#EA7409;font-weight:bold;'>" + statusinfo['currservice_station'] + "</span>&nbsp;&nbsp;" + statusinfo['currservice_begin'] + " - " + statusinfo['currservice_end'] + "&nbsp;&nbsp;" + statusinfo['currservice_name']);
-			$("#osd_bottom").html(statusinfo['currservice_description']);
-		} else {
-			$("#osd").html(tstr_nothing_play);
-			$("#osd_bottom").html('');
+		
+		setOSD(statusinfo);
+		
+		var sb = '';
+		var tit = tstr_standby;
+		if (statusinfo['inStandby'] !== 'true') {
+			sb=' checked';
+			tit = tstr_on;
 		}
+
 		var status = "";
 		if (statusinfo['isRecording'] == 'true') {
-			var timercall = "load_maincontent('ajax/timers'); return false;";
-			status = "<a href='#' onClick='load_maincontent(\"ajax/timers\"); return false;'><img src='../images/ico_rec.png' title='" + tstr_rec_status + statusinfo['Recording_list'] + "' alt='" + tstr_rec_status + "' /></a>";
+			status = "<a href='#' onClick='load_maincontent(\"ajax/timers\"); return false;'><div title='" + tstr_rec_status + statusinfo['Recording_list'] + "' class='led-box'><div class='led-red'></div></div></a>";
 		}
+		
+		status += "<div class='pwrbtncontout'><div class='pwrbtncont' title='" + tit + "'><label class='label pwrbtn'><input type='checkbox' "+sb+" id='pwrbtn' onchange='toggleStandby();return true;' /><div class='pwrbtn-control'></div></label></div></div>";
+		/*
 		status += "<a href='#' onClick='toggleStandby();return false'><img src='../images/ico_";
 		if (statusinfo['inStandby'] == 'true') {
 			status += "standby.png' title='" + tstr_on + "' alt='" + tstr_standby;
@@ -617,9 +766,11 @@ function getStatusInfo() {
 			status += "on.png' title='" + tstr_standby + "' alt='" + tstr_on;
 		}
 		status += "' width='58' height='24' /></a>";
+		*/
 		$("#osd_status").html(status);
-	}).error(function() {
+	} , error: function() {
 		$("#osd, #osd_bottom").html("");
+	}
 	});
 }
 
@@ -639,14 +790,19 @@ function grabScreenshot(mode) {
 	if (($('#screenshotRefreshHD').is(':checked'))){
 		$('#screenshotimage').attr("src",'/grab?format=jpg&mode=' + mode + '&timestamp=' + timestamp);
 	} else {
-		$('#screenshotimage').attr("src",'/grab?format=jpg&r=700&mode=' + mode + '&timestamp=' + timestamp);
+		$('#screenshotimage').attr("src",'/grab?format=jpg&r=720&mode=' + mode + '&timestamp=' + timestamp);
 	}
-	$('#screenshotimage').attr("width",700);
+	$('#screenshotimage').attr("width",720);
 }
 
 function getMessageAnswer() {
-	$.getJSON('/api/messageanswer', function(result){
-		$('#messageSentResponse').html(result['message']);
+	$.ajax({
+		url: '/api/messageanswer',
+		dataType: "json",
+		cache: false,
+		success: function(result) { 
+			$('#messageSentResponse').html(result['message']);
+		}
 	});
 }
 
@@ -667,27 +823,33 @@ function sendMessage() {
 	var type = $('#messageType').val();
 	var timeout = $('#messageTimeout').val();
 
-	$.getJSON('/api/message?text=' + text + '&type=' + type + '&timeout=' + timeout, function(result){
-		$('#messageSentResponse').html(result['message']);
-		if(type==0)
-		{
-			MessageAnswerCounter=timeout;
-			setTimeout(countdowngetMessage, 1000);
+	$.ajax({
+		url: '/api/message?text=' + text + '&type=' + type + '&timeout=' + timeout,
+		dataType: "json",
+		cache: false,
+		success: function(result) { 
+			$('#messageSentResponse').html(result['message']);
+			if(type==0)
+			{
+				MessageAnswerCounter=timeout;
+				setTimeout(countdowngetMessage, 1000);
+			}
 		}
 	});
-	
 }
 
 function toggleMenu(name) {
 	var expander_id = "#leftmenu_expander_" + name;
 	var container_id = "#leftmenu_container_" + name;
-	if ($(expander_id).hasClass("leftmenu_icon_collapse")) {
-		$(expander_id).removeClass("leftmenu_icon_collapse");
+	if ($(expander_id).hasClass("ui-icon-caret-1-w")) {
+		$(expander_id).removeClass("ui-icon-caret-1-w");
+		$(expander_id).addClass("ui-icon-caret-1-s");
 		$(container_id).show('fast');
 		webapi_execute("/api/expandmenu?name=" + name);
 	}
 	else {
-		$(expander_id).addClass("leftmenu_icon_collapse");
+		$(expander_id).addClass("ui-icon-caret-1-w");
+		$(expander_id).removeClass("ui-icon-caret-1-s");
 		$(container_id).hide('fast');
 		webapi_execute("/api/collapsemenu?name=" + name);
 	}
@@ -698,13 +860,6 @@ $(function() {
 	$("input[name=remotegrabscreen]").click(function(evt) {
 		$('input[name=remotegrabscreen]').attr('checked', evt.currentTarget.checked);
 		webapi_execute("/api/remotegrabscreenshot?checked=" + evt.currentTarget.checked);
-	});
-});
-
-$(function() {
-	$("input[name=zapstream]").click(function(evt) {
-		$('input[name=zapstream]').attr('checked', evt.currentTarget.checked);
-		webapi_execute("/api/zapstream?checked=" + evt.currentTarget.checked);
 	});
 });
 
@@ -737,11 +892,10 @@ function callScreenShot(){
 }
 
 function pressMenuRemote(code) {
-	if (shiftbutton) {
-		webapi_execute("/api/remotecontrol?type=long&command=" + code);
-	} else {
-		webapi_execute("/api/remotecontrol?command=" + code);
-	}
+	
+	var url = "/api/remotecontrol?" + ((shiftbutton) ? "type=long&" : "") + "command=" + code;
+	webapi_execute(url);
+	
 	if (grabTimer > 0) {
 		clearTimeout(grabTimer);
 	}
@@ -807,41 +961,50 @@ function initTimerBQ(radio) {
 
 function initTimerEdit(radio) {
 	
+	// FIXME: async
 	initTimerBQ(radio);
 	
-	$.ajax({
-		async: false,
-		url: "/api/getlocations",
-		success: function(data) {
-			locs = $.parseJSON(data);
-			if (locs.result) {
-				$('#dirname').find('option').remove().end();
-				$('#dirname').append($("<option></option>").attr("value", "None").text("Default"));
-						
-				for (var id in locs.locations) {
-					loc = locs.locations[id];
-					$('#dirname').append($("<option></option>").attr("value", loc).text(loc));
-				}
-			}
-		}
-	});
-	
-	$.ajax({
-		async: false,
-		url: "/api/gettags",
-		success: function(data) {
-			tags = $.parseJSON(data);
-			if (tags.result) {
-				for (var id in tags.tags) {
-					tag = tags.tags[id];
-					$('#tagsnew').append("<input type='checkbox' name='tagsnew' value='"+tag+"' id='tag_"+tag+"'/><label for='tag_"+tag+"'>"+tag+"</label>");
-				}
-				$('#tagsnew').buttonset();
-			}
-		}
-	});
+	$('#dirname').find('option').remove().end();
+	$('#dirname').append($("<option></option>").attr("value", "None").text("Default"));
+	for (var id in _locations) {
+		var loc = _locations[id];
+		$('#dirname').append($("<option></option>").attr("value", loc).text(loc));
+	}
+
+	$('#tagsnew').html('');
+	for (var id in _tags) {
+		var tag = _tags[id];
+		$('#tagsnew').append("<input type='checkbox' name='tagsnew' value='"+tag+"' id='tag_"+tag+"'/><label for='tag_"+tag+"'>"+tag+"</label>");
+	}
+	$('#tagsnew').buttonset();
 	
 	timeredit_initialized = true;
+}
+
+function loadLocations()
+{
+	_locations = [];
+	$.ajax({
+		url: "/api/getlocations",
+		success: function(data) {
+			var loc = $.parseJSON(data);
+			if (loc.result)
+				_locations = loc.locations;
+		}
+	});
+}
+
+function loadTags()
+{
+	_tags = [];
+	$.ajax({
+		url: "/api/gettags",
+		success: function(data) {
+			var tag = $.parseJSON(data);
+			if (tag.result)
+				_tags = tag.tags;
+		}
+	});
 }
 
 function checkVPS()
@@ -916,7 +1079,6 @@ function editTimer(serviceref, begin, end) {
 	}
 
 	$.ajax({
-		async: false,
 		url: "/api/timerlist",
 		success: function(data) {
 			timers = $.parseJSON(data);
@@ -998,8 +1160,7 @@ function editTimer(serviceref, begin, end) {
 								$('#always_zap1').hide();
 							}
 							
-							$('#editTimerForm').dialog("open");
-							$('#editTimerForm').dialog("option", "title", tstr_edit_timer + " - " + timer.name);
+							openTimerDlg(tstr_edit_timer + " - " + timer.name);
 							
 							break;
 						}
@@ -1009,7 +1170,7 @@ function editTimer(serviceref, begin, end) {
 	});
 }
 
-function addTimer(evt,chsref,chname) {
+function addTimer(evt,chsref,chname,top) {
 	current_serviceref = '';
 	current_begin = -1;
 	current_end = -1;
@@ -1091,9 +1252,14 @@ function addTimer(evt,chsref,chname) {
 		$('#bouquet_select').val(serviceref);
 	}
 
+	openTimerDlg(tstr_add_timer);
+}
+
+function openTimerDlg(title)
+{
 	$('#editTimerForm').dialog("open");
-	$('#editTimerForm').dialog("option", "title", tstr_add_timer);
-	$('#editTimerForm').dialog("option", "height", "auto");
+	$('#editTimerForm').dialog("option", "title", title);
+
 }
 
 /* Timer management end */
@@ -1101,6 +1267,7 @@ function addTimer(evt,chsref,chname) {
 function InitAccordeon(obj)
 {
 	// init accordeon for jquery UI 1.8.x
+	/*
 	$(obj).accordion({
 		active: false,
 		change: function(event, ui) {
@@ -1111,10 +1278,12 @@ function InitAccordeon(obj)
 		autoHeight: false,
 		collapsible: true
 	});
+	*/
 	// init accordeon for jquery UI 1.11.x
-	/*
+	
 	$(obj).accordion({
 		active: true,
+		animate: false,
 		activate: function(event, ui) {
 			ui.oldPanel.empty();
 			ui.oldPanel.html(tstr_loading + " ...");
@@ -1123,49 +1292,135 @@ function InitAccordeon(obj)
 		heightStyle: "content",
 		collapsible: true
 	});
-	*/
+	
 }
+
+function RefreshMEPG()
+{
+	var bq = '';
+	var lbq=GetLSValue('lastmbq','');
+	if(lbq!='')
+		bq= "?bref=" + lbq;
+	$("#tvcontent").html(loadspinner).load('ajax/multiepg' + bq,function() {
+		ExpandMEPG();
+	});
+}
+
+function ExpandMEPG()
+{
+	$("#expandmepg").hide();
+	$("#compressmepg").show();
+	$("#refreshmepg").show();
+	$("#header").hide();
+	$("#leftmenu").hide();
+	$('#content').css('margin-left', '5px')
+	$('#tvcontentmain > #toolbar-header').hide();
+	$("#tbl1body").height('100%');
+	$("#tvcontent").css('height','100%');
+	$("#tvcontentmain").css('height','950px');
+	fixTableHeight();
+}
+
+function CompressMEPG()
+{
+	$("#refreshmepg").hide();
+	$("#expandmepg").show();
+	$("#compressmepg").hide();
+	$("#header").show();
+	$("#leftmenu").show();
+	$('#content').css('margin-left', '185px')
+	$('#tvcontentmain > #toolbar-header').show();
+	$("#tvcontent").css('height','730px');
+	$("#tvcontentmain").css('height','800px');
+	fixTableHeight();
+}
+
+//$(window).resize(function(){ mainresize(); });
+
+function mainresize()
+{
+	console.log("WH" + $( window ).height() + "TVH" + $("#tvcontentmain").height());
+
+	if($("#tvcontentmain")) {
+		//$("#tvcontentmain").height($( window ).height()-220);
+		try {fixTableHeight(); } catch(err) {}
+	}
+}
+
+var mepgdirect=0;
 
 function InitBouquets(tv)
 {
 	var mode="";
 	if (tv===true) {
-	
 		$('#btn0').click(function(){
+			$("#expandmepg").hide();
 			$("#tvcontent").html(loadspinner).load("ajax/current");
 		});
 		$('#btn5').click(function(){
-			var bq="";
-			if(typeof(Storage) !== "undefined") {
-				if(localStorage.lastmbq)
-				{
-					bq= "?bref=" + localStorage.lastmbq;
-				}
-			}
+		
+			var bq = '';
+			var lbq=GetLSValue('lastmbq','');
+			if(lbq!='')
+				bq= "?bref=" + lbq;
 			$("#tvcontent").html(loadspinner).load('ajax/multiepg' + bq);
+			$("#expandmepg").show();
 		});
 
 	} 
 	else {
 		mode= "?stype=radio";
+		$('#btn0').click(function(){
+			$("#tvcontent").html(loadspinner).load("ajax/current"+ mode);
+		});
 	}
 	$('#btn1').click(function(){
+		$("#expandmepg").hide();
 		$("#tvcontent").html(loadspinner).load("ajax/bouquets" + mode);
 	});
 	$('#btn2').click(function(){
+		$("#expandmepg").hide();
 		$("#tvcontent").html(loadspinner).load("ajax/providers" + mode);
 	});
 	$('#btn3').click(function(){
+		$("#expandmepg").hide();
 		$("#tvcontent").load("ajax/satellites" + mode);
 	});
 	$('#btn4').click(function(){
+		$("#expandmepg").hide();
 		$("#tvcontent").html(loadspinner).load("ajax/channels" + mode);
 	});
 	
 	$("#tvbutton").buttonset();
+
+	var link = "ajax/bouquets" + mode;
+
+	if (tv===true) {
+		var parts=window.location.href.toLowerCase().split("#");
+		window.location.hash="";
+		if (parts[1] == 'tv') {
+			if(parts[2] == 'mepg' || parts[2] == 'mepgfull')
+			{
+				mepgdirect=0;
+				if(parts[2] == 'mepgfull')
+					mepgdirect=1;
+				$("#btn5").click();
+				return;
+			}
+			else if (parts[2] == 'current')
+			{
+				$("#btn0").click();
+				return;
+			}
+		}
+	}
+	
 	$("#tvcontent").load("ajax/bouquets" + mode);
 	
+	if (theme == 'pepper-grinder')
+		$("#tvcontent").addClass('ui-state-active');
 }
+
 
 /* Vu+ Transcoding begin*/
 
@@ -1232,3 +1487,310 @@ function jumper8001( sref, sname ) {
 }
 
 /* Vu+ Transcoding end*/
+
+function ChangeTheme(theme)
+{
+	$.ajax({
+		url: "api/settheme?theme=" + theme,
+		success: function() {
+			window.location.hash = '#settings';
+			window.location.reload(true);
+		}
+	});
+}
+
+function directlink()
+{
+	var parts=window.location.href.toLowerCase().split("#");
+	var lnk='ajax/tv';
+	var p = parts[1];
+
+	switch (p)
+	{
+		case 'radio':
+		case 'movies':
+		case 'timer':
+		case 'settings':
+		case 'at':
+		case 'bqe':
+		case 'epgr':
+			lnk='ajax/' + p;
+			break;
+	}
+	if(p != 'tv') {
+		window.location.hash="";
+	}
+	
+	load_maincontent(lnk);
+}
+
+function ShowTimers(timers)
+{
+	if (timers.length > 0)
+	{
+		$( ".ETV tbody" ).each(function( index ) {
+			var parts=$( this ).data('id').split(';');
+			if (parts.length == 3)
+			{
+				var sref = parts[0];
+				var begin = parseInt(parts[1]);
+				var end = begin + ( parseInt(parts[2]) * 60 );
+				var evt = $( this );
+				timers.forEach(function(entry) {
+					if(entry["sref"] == sref)
+					{
+						var b = parseInt(entry["begin"]);
+						var e = parseInt(entry["end"]);
+						
+						// event end > timerbegin & event begin < timer end
+						if ( end > b && begin < e ) {
+							
+							var addt = evt.find('.addtimer').first();
+							var delt = evt.find('.deltimer').first();
+							var pan = evt.find('.timerpanel').first();
+							
+							if ( begin >= b && end <= e )
+							{
+								addt.hide();
+								delt.show();
+								pan.css("background-color", "red");
+							}
+							else
+							{
+								pan.css("background-color", "yellow");
+							}
+						}
+					}
+				});
+			}
+			
+		});
+		
+	
+	}
+}
+
+var MLHelper;
+
+(function() {
+
+	var MovieListObj = function () {
+		var self;
+		var _movies = [];
+		var currentsort = 'name';
+		
+		return {
+		
+			Init: function ( ) {
+				self = this;
+			},
+			Load: function ( newsort) {
+
+				currentsort = newsort;
+				$.widget( "custom.iconselectmenu", $.ui.selectmenu, {
+					_renderItem: function( ul, item ) {
+						var li = $( "<li>" ),
+						wrapper = $( "<div>",{ text: item.label } ).prepend (
+						$( "<span class='sortimg'>").append (
+							$( "<i>", { "class": "fa " + item.element.data("class") })
+							)
+						);
+						return li.append( wrapper ).appendTo( ul );
+					}
+				});
+
+				$("#moviesort").iconselectmenu({change: function(event, ui) {
+					MLHelper.SortMovies(ui.item.value);
+					}
+				}).addClass("ui-menu-icons");
+				
+				self.SetSortImg();
+				
+				self.ReadMovies();
+			},
+			SetSortImg: function ()
+			{
+			
+				$("#moviesort option").each(function()
+				{
+					var simg='';
+					if( $(this).val() == $( "#moviesort" ).val() )
+					{
+						simg=$(this).data("class");
+						if (simg) {
+							var img = $( "<span class='sortimg'>").append (
+								$( "<i>", { "class": "fa " + simg })
+								)
+							$(".ui-selectmenu-text").prepend(img);
+						}
+					}
+				});
+			}
+			,SortMovies: function(idx)
+			{
+				var sorted = self._movies.slice(0);
+			
+				if(idx=='name')
+				{
+					// sort by name
+					sorted.sort(function(a,b) {
+						var x = a.title.toLowerCase();
+						var y = b.title.toLowerCase();
+						return x < y ? -1 : x > y ? 1 : 0;
+					});
+				
+				}
+			
+				if(idx=='named')
+				{
+					// sort by name desc
+					sorted.sort(function(a,b) {
+						var x = b.title.toLowerCase();
+						var y = a.title.toLowerCase();
+						return x < y ? -1 : x > y ? 1 : 0;
+					});
+						
+				
+				}
+			
+				if(idx=='date')
+				{
+				
+						
+					// sort by date desc
+					sorted.sort(function(a,b) {
+						return b.start - a.start;
+					});
+				
+				
+				}
+			
+				if(idx=='dated')
+				{
+					
+					// sort by date
+					sorted.sort(function(a,b) {
+						return a.start - b.start;
+					});
+				
+				
+				}
+				
+				$('#movies').empty();
+				
+				for (var i = 0, len = sorted.length; i < len; i++) {
+					$('#movies').append ( 
+						sorted[i].html
+					);
+				}
+				
+				self.ChangeSort(idx);
+				self.SetSortImg();
+			
+			},
+			ChangeSort : function(nsort)
+			{
+				$.ajax({
+					url: "api/setmoviesort?nsort=" + nsort,
+					success: function() {
+					}
+				});
+			}, 
+			ReadMovies :function()
+			{
+				self._movies = [];
+				
+				$('#movies').children('.tm_row').each(function() { 
+				
+				var d = $(this).data('start');
+				var t = $(this).data('title');
+			
+				self._movies.push (
+					{
+					'id':$(this).attr('id'),
+					'title':t,
+					'start':d,
+					'html': $(this)
+					}
+				);
+				});
+			
+			}
+		
+		}
+
+	};
+	
+	if (typeof MLHelper == 'undefined') {
+		MLHelper = new MovieListObj();
+		MLHelper.Init();
+	}
+
+})();
+
+function reversetheme()
+{
+	return (theme=='pepper-grinder' || theme=='vader' || theme == 'smoothness' || theme == 'le-frog' || theme == 'mint-choc' || theme == 'humanity' || theme == 'eggplant' || theme == 'dot-luv' || theme == 'black-tie' );
+}
+
+function getHoverCls()
+{
+	return reversetheme() ? 'ui-state-active':'ui-state-hover';
+}
+function getActiveCls()
+{
+	return reversetheme() ? 'ui-state-hover':'ui-state-active';
+}
+
+function setHover(obj)
+{
+	var cls=getHoverCls();
+	
+	$(obj).hover(
+		function(){ $(this).addClass(cls) },
+		function(){ $(this).removeClass(cls) }
+	)
+}
+
+function setTMHover()
+{
+	var cls='ui-state-active';
+	if (theme=='pepper-grinder') {
+		$('.tm_row').removeClass('ui-state-default');
+		$('.tm_row').addClass('ui-state-hover');
+	}
+	
+	$('.tm_row').hover(
+		function(){ $(this).addClass(cls) },
+		function(){ $(this).removeClass(cls) }
+	)
+}
+
+// Localstorage
+
+function SetLSValue(t,val)
+{
+	if(typeof(Storage) !== "undefined") {
+		localStorage.setItem(t,val);
+	}
+}
+
+function GetLSValue(t,def)
+{
+	var ret = def;
+	if(typeof(Storage) !== "undefined") {
+		var value = localStorage.getItem(t);
+		if (value !== undefined && value !== null)
+		{
+			ret = value;
+		}
+	}
+	return ret;
+}
+
+function SetSpinner()
+{
+	var spin = GetLSValue('spinner','fa-spinner');
+	loadspinner = "<div id='spinner'><div class='fa " + spin + " fa-spin'></div></div>";
+}
+

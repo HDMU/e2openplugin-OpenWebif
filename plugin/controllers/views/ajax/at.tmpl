@@ -1,36 +1,34 @@
 #filter WebSafe
 #from Plugins.Extensions.OpenWebif.local import tstrings
 <style>
-  #atlist .ui-selecting { background: #FECA40; }
-  #atlist .ui-selected { background: #F39814; color: white; }
-  #atlist { list-style-type: none; margin: 0; padding: 0; }
-  #atlist li { margin: 3px; padding: 0.4em; font-size: 1.1em; height: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
   optgroup {font-weight: bolder;}
 fieldset > label
 {
 	-webkit-margin-top-collapse: separate;
-	margin-top: 1.5em;
+	margin-top: .5em;
+	margin-bottom: 1em;
 	display: inline-block;
 }
 </style>
 
-<div id="content_main" style="min-height: 500px;">
+<div id="content_main" style="min-height: 500px;background-image:none;" class="ui-widget-content">
 	<div id="info">
-		<div style="background-color: #00000">
-		<div style="display: inline-block; width: 100%; zoom: 1;">
-			<div style="float:left;width:200px;">
-				<h3>$tstrings['at_list']</h3>
-				<ol id="atlist">
+		<div style="display: table;width: 100%;">
+			<div style="display:table-cell;width:200px;vertical-align:top;">
+				<h3 class="ui-widget-header">$tstrings['at_list']</h3>
+				<div style="overflow:auto;max-height:600px;">
+				<ol class="sellist" id="atlist">
 				</ol>
-				
+				</div>
 			</div>
-			<div style="margin-left:200px;">
-				<div style="display: inline-block; width: 100%; zoom: 1;">
-					<h3>$tstrings['at_at_edit'] <span id='at_name'></span></h3>
+			<div class="ui-widget-header" style="display:table-cell;background: none;border-bottom:none;border-top:none;border-left:none;width:1px;"></div>
+			<div style="display:table-cell;">
+				<div style="width: 100%; zoom: 1;">
+				<h3 class="ui-widget-header">$tstrings['at_at_edit'] <span id='at_name'></span></h3>
 					<div id="ateditcontent">
 						<form>
-							<fieldset>
-								<br><label for="enabled">$tstrings['at_enabled']:</label>
+							<fieldset style="border:none">
+								<label for="enabled">$tstrings['at_enabled']:</label>
 								<input type="checkbox" name="enabled" id="enabled" value="" class="checkbox ui-widget-content ui-corner-all">
 								<br><label for="name">$tstrings['at_description']:</label>
 								<input type="text" name="name" id="name" class="text ui-widget-content ui-corner-all">
@@ -220,7 +218,7 @@ fieldset > label
 							</fieldset>
 						</form>
 						
-						<div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
+					<div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
 						<div id="actions">
 						<button id="atbutton0">$tstrings['at_add']</button>
 						<button id="atbutton1">$tstrings['at_del']</button>
@@ -229,18 +227,18 @@ fieldset > label
 						<button id="atbutton4">$tstrings['at_parse']</button>
 						<button id="atbutton5">$tstrings['at_simulate']</button>
 						<button id="atbutton6">$tstrings['at_timers']</button>
-						<button id="atbutton7">$tstrings['at_settings']</button>
-						</div></div>
-						<div id="errorbox" class="timerlist_row" style="color: red;">
-		<div class="ui-state-error ui-corner-all" style="padding: 0 .7em;"> 
-			<p><span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span> 
-			<span id="error"></span>
-			<span id="success" style="color: green;"></span>
-		</div>
-	</div>
-		<span style="display: block;clear: both;"/>
-		</div>
-		</div>
+						<button id="atbutton7" data-title="$tstrings['ats_auto_timer_settings']">$tstrings['at_settings']</button>
+						</div>
+					</div>
+					<div id="statuscont" style="display:none">
+					<div id="statusbox" class="ui-state-error ui-corner-all" style="padding: 0 .7em;"> 
+						<p>
+							<span id="statusicon" class="ui-icon ui-icon-alert" style="margin-right: .3em;"></span> 
+							<span id="statustext"></span>
+						</p>
+					</div>
+					</div>
+			</div>
 	</div>
 	</div>
 	</div>
@@ -309,9 +307,8 @@ fieldset > label
 </div>
 <div>
 
-<script type="text/javascript" src="/js/jquery-ui-timepicker-addon.min.js"></script>
 <script type="text/javascript" src="/js/chosen.jquery.min.js"></script>
-<script type="text/javascript" src="/js/at-1.8.min.js"></script>
+<script type="text/javascript" src="/js/at-2.1.min.js"></script>
 <script type="text/javascript">
 #raw
 $(function() { InitPage();});

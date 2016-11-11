@@ -1,88 +1,90 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: OpenWebif\n"
-"POT-Creation-Date: 2016-04-30 15:06+0200\n"
-"PO-Revision-Date: 2016-04-30 20:14+0200\n"
+"POT-Creation-Date: 2016-11-06 11:59+0200\n"
+"PO-Revision-Date: 2016-11-06 12:37+0200\n"
 "Last-Translator: rimas\n"
 "Language-Team: Estonian\n"
 "Language: et\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.6\n"
+"X-Generator: Poedit 1.8.11\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../plugin/controllers/BouquetEditor.py:82
 msgid "one two three four unknown command"
-msgstr ""
+msgstr "üks kaks kolm tundmatu käsk"
 
 #: ../plugin/controllers/BouquetEditor.py:88
 #: ../plugin/controllers/BouquetEditor.py:149
 #: ../plugin/controllers/BouquetEditor.py:194
 msgid "No bouquet name given!"
-msgstr ""
+msgstr "Lemmiknimekirja nimi puudub!"
 
 #: ../plugin/controllers/BouquetEditor.py:118
 #, python-format
 msgid "Bouquet %s created."
-msgstr ""
+msgstr "Lemmiknimekiri %s loodud."
 
 #: ../plugin/controllers/BouquetEditor.py:120
 msgid "Get mutable list for new created bouquet failed!"
-msgstr ""
+msgstr "Uue lemmiknimekirja jaoks muutuva nimekirja hankimine nurjus!"
 
 #: ../plugin/controllers/BouquetEditor.py:123
 #, python-format
 msgid "Bouquet %s already exists."
-msgstr ""
+msgstr "Lemmiknimekiri %s on juba olemas."
 
 #: ../plugin/controllers/BouquetEditor.py:125
 #: ../plugin/controllers/BouquetEditor.py:435
 msgid "Bouquetlist is not editable!"
-msgstr ""
+msgstr "Lemmiknimekirjade loend ei ole muudetav!"
 
 #: ../plugin/controllers/BouquetEditor.py:127
 msgid "Multi-Bouquet is not enabled!"
-msgstr ""
+msgstr "Luba mitme nimekirja kasutus!"
 
 #: ../plugin/controllers/BouquetEditor.py:133
 msgid "No provider given!"
-msgstr ""
+msgstr "Levitaja nimi puudub!"
 
 #: ../plugin/controllers/BouquetEditor.py:180
 #, python-format
 msgid "Bouquet %s removed failed."
-msgstr ""
+msgstr "Lemmiknimekirja %s eemaldamine nurjus."
 
 #: ../plugin/controllers/BouquetEditor.py:182
 #, python-format
 msgid "Bouquet %s removed failed, sevicerefence or mutable list is not valid."
 msgstr ""
+"Lemmiknimekirja %s eemaldamine nurjus, viitenumber või muutuv nimekiri ei "
+"ole kehtivad."
 
 #: ../plugin/controllers/BouquetEditor.py:186
 #, python-format
 msgid "Bouquet %s deleted."
-msgstr ""
+msgstr "Lemmiknimekiri %s kustutatud."
 
 #: ../plugin/controllers/BouquetEditor.py:188
 #, python-format
 msgid "Error: Bouquet %s could not deleted, OSError."
-msgstr ""
+msgstr "Viga: Lemmiknimekirja %s eemaldamine nurjus, OS viga."
 
 #: ../plugin/controllers/BouquetEditor.py:204
 #: ../plugin/controllers/BouquetEditor.py:261
 msgid "No position given!"
-msgstr ""
+msgstr "Asukoht andmata!"
 
 #: ../plugin/controllers/BouquetEditor.py:211
 #, python-format
 msgid "Bouquet %s moved."
-msgstr ""
+msgstr "Lemmiknimekiri %s liigutatud."
 
 #: ../plugin/controllers/BouquetEditor.py:213
 #, python-format
 msgid "Bouquet %s can not be moved."
-msgstr ""
+msgstr "Lemmiknimekirja %s ei saa liigutada."
 
 #: ../plugin/controllers/BouquetEditor.py:219
 #: ../plugin/controllers/BouquetEditor.py:249
@@ -90,7 +92,7 @@ msgstr ""
 #: ../plugin/controllers/BouquetEditor.py:309
 #: ../plugin/controllers/BouquetEditor.py:455
 msgid "No bouquet given!"
-msgstr ""
+msgstr "Lemmiknimekiri andmata!"
 
 #: ../plugin/controllers/BouquetEditor.py:225
 #: ../plugin/controllers/BouquetEditor.py:255
@@ -100,193 +102,255 @@ msgstr ""
 #: ../plugin/controllers/BouquetEditor.py:461
 #: ../plugin/controllers/BouquetEditor.py:498
 msgid "No service given!"
-msgstr ""
+msgstr "Kanal andmata!"
 
 #: ../plugin/controllers/BouquetEditor.py:234
 #, python-format
 msgid "Service %s removed."
-msgstr ""
+msgstr "Kanal %s eemaldatud."
 
 #: ../plugin/controllers/BouquetEditor.py:242
 #, python-format
 msgid "Service %s removed from bouquet %s."
-msgstr ""
+msgstr "Kanal %s eemaldati lemmiknimekirjast %s."
 
 #: ../plugin/controllers/BouquetEditor.py:243
 #, python-format
 msgid "Service %s can not be removed."
-msgstr ""
+msgstr "Kanalit %s ei saa eemaldada."
 
 #: ../plugin/controllers/BouquetEditor.py:268
 #, python-format
 msgid "Service %s moved."
-msgstr ""
+msgstr "Kanal %s liigutatud."
 
 #: ../plugin/controllers/BouquetEditor.py:269
 msgid "Service can not be moved."
-msgstr ""
+msgstr "Kanalit ei saa liigutada."
 
 #: ../plugin/controllers/BouquetEditor.py:299
 #, python-format
 msgid "Service %s added."
-msgstr ""
+msgstr "Kanal '%s' lisatud"
 
 #: ../plugin/controllers/BouquetEditor.py:302
 #, python-format
 msgid "Service %s already exists in bouquet %s."
-msgstr ""
+msgstr "Kanal %s on lemmiknimekirjas %s juba olemas."
 
 #: ../plugin/controllers/BouquetEditor.py:303
 msgid "This service can not be added."
-msgstr ""
+msgstr "Seda kanalit ei saa lisada"
 
 #: ../plugin/controllers/BouquetEditor.py:315
 msgid "No marker-name given!"
-msgstr ""
+msgstr "Märgise nimi andmata!"
 
 #: ../plugin/controllers/BouquetEditor.py:329
 msgid "Marker added."
-msgstr ""
+msgstr "Märgis lisatud."
 
 #: ../plugin/controllers/BouquetEditor.py:331
 msgid "Internal error!"
-msgstr ""
+msgstr "Sisemine viga!"
 
 #: ../plugin/controllers/BouquetEditor.py:345
 msgid "No new servicename given!"
-msgstr ""
+msgstr "Uue kanali nimi andmata!"
 
 #: ../plugin/controllers/BouquetEditor.py:369
 msgid "Bouquet renamed successfully."
-msgstr ""
+msgstr "Lemmiknimekiri nimetati ümber."
 
 #: ../plugin/controllers/BouquetEditor.py:385
 msgid "Service renamed successfully."
-msgstr ""
+msgstr "Kanal nimetati ümber."
 
 #: ../plugin/controllers/BouquetEditor.py:386
 msgid "Service can not be renamed."
-msgstr ""
+msgstr "Kanalit ei saa ümber nimetada."
 
 #: ../plugin/controllers/BouquetEditor.py:400
 msgid "No current service given!"
-msgstr ""
+msgstr "Aktiivne kanal andmata!"
 
 #: ../plugin/controllers/BouquetEditor.py:431
 msgid "Get mutable list for new created alternative failed!"
-msgstr ""
+msgstr "Uue asenduskanali jaoks muutuva nimekirja hankimine nurjus!"
 
 #: ../plugin/controllers/BouquetEditor.py:433
 #, python-format
 msgid "Alternative %s created failed."
-msgstr ""
+msgstr "Asenduskanali %s loomine nurjus."
 
 #: ../plugin/controllers/BouquetEditor.py:447
 #, python-format
 msgid "Added %s to alternative service %s."
-msgstr ""
+msgstr "%s lisati asenduskanalile %s."
 
 #: ../plugin/controllers/BouquetEditor.py:478
 msgid "Service is not an alternative."
-msgstr ""
+msgstr "See ei ole asenduskanal."
 
 #: ../plugin/controllers/BouquetEditor.py:486
 msgid "All alternative services deleted."
-msgstr ""
+msgstr "Kõik asenduskanalid on kustutatud."
 
 #: ../plugin/controllers/BouquetEditor.py:492
 msgid "Parent Control is not activated."
-msgstr ""
+msgstr "Lapselukk ei ole sees."
 
 #: ../plugin/controllers/BouquetEditor.py:505
 msgid "No Parent Control Setup Pin given!"
-msgstr ""
+msgstr "Lapseluku PIN sisestamata!"
 
 #: ../plugin/controllers/BouquetEditor.py:509
 #: ../plugin/controllers/BouquetEditor.py:511
 msgid "Parent Control Setup Pin is wrong!"
-msgstr ""
+msgstr "Lapseluku PIN on vale!"
 
 #: ../plugin/controllers/BouquetEditor.py:526
 #, python-format
 msgid "Service %s is locked."
-msgstr ""
+msgstr "Kanal %s on lukustatud."
 
 #: ../plugin/controllers/BouquetEditor.py:528
 #, python-format
 msgid "Bouquet %s is locked."
-msgstr ""
+msgstr "Lemmiknimekiri %s on lukustatud."
 
 #: ../plugin/controllers/BouquetEditor.py:530
 #, python-format
 msgid "%s %s is locked."
-msgstr ""
+msgstr "%s %s is locked."
 
 #: ../plugin/controllers/BouquetEditor.py:534
 #, python-format
 msgid "Service %s is unlocked."
-msgstr ""
+msgstr "Kanali %s lukustus maas"
 
 #: ../plugin/controllers/BouquetEditor.py:536
 #, python-format
 msgid "Bouquet %s is unlocked."
-msgstr ""
+msgstr "Lemmiknimekirja %s lukustus maas"
 
 #: ../plugin/controllers/BouquetEditor.py:573
 #, python-format
 msgid "Error while preparing backup file, %s does not exists."
-msgstr ""
+msgstr "Viga varukoopia loomisel, %s pole olemas."
 
 #: ../plugin/controllers/BouquetEditor.py:579
 msgid "Error while preparing backup file."
-msgstr ""
+msgstr "Viga varukoopia loomisel."
 
 #: ../plugin/controllers/BouquetEditor.py:630
 msgid "Bouquet-settings were restored successfully"
-msgstr ""
+msgstr "Lemmiknimekirjad taastati edukalt"
 
 #: ../plugin/controllers/BouquetEditor.py:632
 #, python-format
 msgid "Error, %s was not created with WebBouquetEditor..."
-msgstr ""
+msgstr "Viga: %s ei ole loodud WebBouquetEditor laiendusega."
 
 #: ../plugin/controllers/BouquetEditor.py:634
 #, python-format
 msgid "Error, %s does not exists, restore is not possible..."
-msgstr ""
+msgstr "Viga, %s pole olema, taastamine ei ole võimalik"
 
-#: ../plugin/controllers/base.py:221 ../plugin/local.py:181
+#: ../plugin/controllers/base.py:264 ../plugin/local.py:181
 #: ../plugin/local.py:325
 msgid "Settings"
 msgstr "Seaded"
 
-#: ../plugin/controllers/base.py:236
+#: ../plugin/controllers/base.py:280
 msgid "LCD4Linux Setup"
 msgstr "LCD4Linux seaded"
 
-#: ../plugin/controllers/base.py:240
+#: ../plugin/controllers/base.py:305
+msgid "OSCam Webinterface"
+msgstr "OSCam veebiliides"
+
+#: ../plugin/controllers/base.py:309
 msgid "AutoTimer"
 msgstr "Autotaimer"
 
-#: ../plugin/controllers/base.py:244
+#: ../plugin/controllers/base.py:314
 msgid "BouquetEditor"
 msgstr "Lemmiknimekirjad"
 
-#: ../plugin/controllers/base.py:248
+#: ../plugin/controllers/base.py:318
 msgid "EPGRefresh"
 msgstr "EPG värskendus"
 
-#: ../plugin/controllers/models/info.py:71 ../plugin/local.py:115
+#: ../plugin/controllers/models/info.py:57
+msgid "SLAAC"
+msgstr "SLAAC"
+
+#: ../plugin/controllers/models/info.py:64
+#: ../plugin/controllers/models/info.py:75
+#: ../plugin/controllers/models/info.py:82
+msgid "static"
+msgstr "staatiline"
+
+#: ../plugin/controllers/models/info.py:66
+#: ../plugin/controllers/models/info.py:84 ../plugin/local.py:80
+msgid "DHCP"
+msgstr "DHCP"
+
+#: ../plugin/controllers/models/info.py:68
+#: ../plugin/controllers/models/info.py:86
+msgid "manual/disabled"
+msgstr "käsitsi/keelatud"
+
+#: ../plugin/controllers/models/info.py:90
+#: ../plugin/controllers/models/info.py:102
+msgid "unknown"
+msgstr "tundmatu"
+
+#: ../plugin/controllers/models/info.py:135 ../plugin/local.py:115
 msgid "IPv4-only kernel"
 msgstr "IPv4-ainult kernel"
 
-#: ../plugin/controllers/models/info.py:75 ../plugin/local.py:117
+#: ../plugin/controllers/models/info.py:139 ../plugin/local.py:117
 msgid "IPv4-only Python/Twisted"
 msgstr "IPv4-ainult Python/Twisted"
 
-#: ../plugin/controllers/models/info.py:104 ../plugin/local.py:116
+#: ../plugin/controllers/models/info.py:168 ../plugin/local.py:116
 msgid "none/IPv4-only network"
 msgstr "pole/IPv4-ainult võrk"
+
+#: ../plugin/controllers/models/info.py:286
+#: ../plugin/controllers/models/info.py:402
+#, python-format
+msgid "%s free / %s total"
+msgstr "%s vaba / %s kokku"
+
+#: ../plugin/controllers/models/info.py:318 ../plugin/local.py:65
+msgid "Chipset"
+msgstr "Kiip"
+
+#: ../plugin/controllers/models/info.py:321 ../plugin/local.py:104
+msgid "Frontprocessor Version"
+msgstr "Esiprotsessori versioon"
+
+#: ../plugin/controllers/models/info.py:366
+#: ../plugin/controllers/models/info.py:377
+#: ../plugin/controllers/models/info.py:395
+msgid "MB"
+msgstr "MB"
+
+#: ../plugin/controllers/models/info.py:369
+#: ../plugin/controllers/models/info.py:375
+#: ../plugin/controllers/models/info.py:390
+#: ../plugin/controllers/models/info.py:393
+msgid "GB"
+msgstr "GB"
+
+#: ../plugin/controllers/models/info.py:373
+#: ../plugin/controllers/models/info.py:385
+#: ../plugin/controllers/models/info.py:387
+msgid "TB"
+msgstr "TB"
 
 #: ../plugin/controllers/models/message.py:33
 msgid "Message sent successfully!"
@@ -304,175 +368,175 @@ msgstr "Vastus - JAH!"
 msgid "Answer is NO!"
 msgstr "Vastus - EI!"
 
-#: ../plugin/controllers/models/services.py:251
+#: ../plugin/controllers/models/services.py:260
 msgid "New"
 msgstr "Uus"
 
-#: ../plugin/controllers/models/services.py:253
+#: ../plugin/controllers/models/services.py:262
 msgid "Services"
 msgstr "Kanalid"
 
-#: ../plugin/controllers/models/services.py:258
+#: ../plugin/controllers/models/services.py:267
 msgid "Cable"
 msgstr "Kaabel"
 
-#: ../plugin/controllers/models/services.py:260
+#: ../plugin/controllers/models/services.py:269
 msgid "Terrestrial"
 msgstr "Maapealne"
 
-#: ../plugin/controllers/models/services.py:264
+#: ../plugin/controllers/models/services.py:273
 msgid "W"
 msgstr "W"
 
-#: ../plugin/controllers/models/services.py:266
+#: ../plugin/controllers/models/services.py:275
 msgid "E"
 msgstr "E"
 
-#: ../plugin/controllers/models/timers.py:172
+#: ../plugin/controllers/models/timers.py:178
 #, python-format
 msgid "Conflicting Timer(s) detected! %s"
 msgstr "Vastuolus taimerid!  %s"
 
-#: ../plugin/controllers/models/timers.py:188
+#: ../plugin/controllers/models/timers.py:195
 #, python-format
 msgid "Could not add timer '%s'!"
 msgstr "Taimeri '%s' lisamine nurjus!"
 
-#: ../plugin/controllers/models/timers.py:193
+#: ../plugin/controllers/models/timers.py:200
 #, python-format
 msgid "Timer '%s' added"
-msgstr "Taimer '%s' lisati"
+msgstr "Taimer '%s' lisatud"
 
-#: ../plugin/controllers/models/timers.py:201
+#: ../plugin/controllers/models/timers.py:208
 msgid "EventId not found"
 msgstr "Saate tunnust ei leitud"
 
-#: ../plugin/controllers/models/timers.py:272
+#: ../plugin/controllers/models/timers.py:279
 #, python-format
 msgid "Timer '%s' changed"
 msgstr "Taimerit '%s' muudeti"
 
-#: ../plugin/controllers/models/timers.py:277
+#: ../plugin/controllers/models/timers.py:298
 #, python-format
 msgid "Timer '%s' not saved while Conflict"
 msgstr "Taimerit '%s' ei salvestatud vastuolu tõttu"
 
-#: ../plugin/controllers/models/timers.py:282
+#: ../plugin/controllers/models/timers.py:304
 #, python-format
 msgid "Could not find timer '%s' with given start and end time!"
 msgstr "Antud algus- ja lõpuajaga taimerit '%s' ei leitud!"
 
-#: ../plugin/controllers/models/timers.py:294
+#: ../plugin/controllers/models/timers.py:316
 #, python-format
 msgid "The timer '%s' has been deleted successfully"
 msgstr "Taimer '%s' kustutati edukalt"
 
-#: ../plugin/controllers/models/timers.py:299
-#: ../plugin/controllers/models/timers.py:343
+#: ../plugin/controllers/models/timers.py:321
+#: ../plugin/controllers/models/timers.py:365
 msgid "No matching Timer found"
 msgstr "Taimeri vastet ei leitud"
 
-#: ../plugin/controllers/models/timers.py:317
+#: ../plugin/controllers/models/timers.py:339
 #, python-format
 msgid "Timer '%s' not enabled while Conflict"
-msgstr ""
+msgstr "Taimerit '%s' ei lubatud vastuolu tõttu"
 
-#: ../plugin/controllers/models/timers.py:323
+#: ../plugin/controllers/models/timers.py:345
 #, python-format
 msgid "Timer '%s' already exists!"
-msgstr ""
+msgstr "Taimer '%s' on juba olemas."
 
-#: ../plugin/controllers/models/timers.py:329
+#: ../plugin/controllers/models/timers.py:351
 #, python-format
 msgid "The timer '%s' now recorded! Not disabled!"
-msgstr ""
+msgstr "Taimer '%s' on nüüd salvestav! Mitte keelatud!"
 
-#: ../plugin/controllers/models/timers.py:337
+#: ../plugin/controllers/models/timers.py:359
 #, python-format
 msgid "The timer '%s' has been %s successfully"
 msgstr "Taimer '%s' on edukalt %s"
 
-#: ../plugin/controllers/models/timers.py:350
+#: ../plugin/controllers/models/timers.py:372
 msgid "List of Timers has been cleaned"
 msgstr "Taimerinimekiri tühjendati"
 
-#: ../plugin/controllers/models/timers.py:357
+#: ../plugin/controllers/models/timers.py:379
 msgid "TimerList has been saved"
 msgstr "Taimerinimekiri salvestati"
 
-#: ../plugin/controllers/models/timers.py:372
+#: ../plugin/controllers/models/timers.py:394
 msgid "No event found! Not recording!"
 msgstr "Saadet ei leitud! Ei salvestata!"
 
-#: ../plugin/controllers/models/timers.py:378
+#: ../plugin/controllers/models/timers.py:400
 msgid "Instant record for current Event started"
 msgstr "Algas käesoleva saate salvestamine"
 
-#: ../plugin/controllers/models/timers.py:387
+#: ../plugin/controllers/models/timers.py:409
 msgid "Infinite Instant recording started"
 msgstr "Algas kohene salvestus"
 
-#: ../plugin/controllers/models/timers.py:406
+#: ../plugin/controllers/models/timers.py:428
 msgid "Timer conflict detected! Not recording!"
 msgstr "Taimerite ajad kattuvad! Ei salvestata!"
 
-#: ../plugin/controllers/models/timers.py:480
+#: ../plugin/controllers/models/timers.py:502
 msgid "Missing requesteter: sRef"
 msgstr "Puudub registri parameeter: sRef"
 
-#: ../plugin/controllers/models/timers.py:502
+#: ../plugin/controllers/models/timers.py:524
 #, python-format
 msgid "Unknown command: '%s'"
 msgstr "Tundmatu käsk: '%s'"
 
-#: ../plugin/controllers/models/timers.py:559
+#: ../plugin/controllers/models/timers.py:581
 msgid "PowerTimer feature not available"
 msgstr "Toitetaimeri võimalus puudub"
 
-#: ../plugin/controllers/models/timers.py:635
-#: ../plugin/controllers/models/timers.py:661
+#: ../plugin/controllers/models/timers.py:657
+#: ../plugin/controllers/models/timers.py:683
 msgid "Sleeptimer is enabled"
 msgstr "Unetaimer lubati"
 
-#: ../plugin/controllers/models/timers.py:635
-#: ../plugin/controllers/models/timers.py:661
+#: ../plugin/controllers/models/timers.py:657
+#: ../plugin/controllers/models/timers.py:683
 msgid "Sleeptimer is disabled"
 msgstr "Unetaimer keelati"
 
-#: ../plugin/controllers/models/timers.py:640
-#: ../plugin/controllers/models/timers.py:667
+#: ../plugin/controllers/models/timers.py:662
+#: ../plugin/controllers/models/timers.py:689
 msgid "SleepTimer error"
-msgstr ""
+msgstr "Unetaimeri viga"
 
-#: ../plugin/controllers/models/timers.py:679
+#: ../plugin/controllers/models/timers.py:701
 msgid "ERROR: Cannot set SleepTimer while device is in Standby-Mode"
 msgstr "VIGA: Unetaimerit ei saa määrata kui vastuvõtja on ooteseisundis"
 
-#: ../plugin/controllers/models/timers.py:684
-#: ../plugin/controllers/models/timers.py:753
-#: ../plugin/controllers/models/timers.py:771
+#: ../plugin/controllers/models/timers.py:706
+#: ../plugin/controllers/models/timers.py:775
+#: ../plugin/controllers/models/timers.py:793
 msgid "Sleeptimer has been disabled"
 msgstr "Unetaimer keelati"
 
-#: ../plugin/controllers/models/timers.py:690
-#: ../plugin/controllers/models/timers.py:753
-#: ../plugin/controllers/models/timers.py:766
+#: ../plugin/controllers/models/timers.py:712
+#: ../plugin/controllers/models/timers.py:775
+#: ../plugin/controllers/models/timers.py:788
 #, python-format
 msgid "Sleeptimer set to %d minutes"
 msgstr "Unetaimer määratud %d minutile"
 
-#: ../plugin/controllers/models/timers.py:695
-#: ../plugin/controllers/models/timers.py:776
+#: ../plugin/controllers/models/timers.py:717
+#: ../plugin/controllers/models/timers.py:798
 msgid "SleepTimer Error"
-msgstr ""
+msgstr "Unetaimeri viga"
 
-#: ../plugin/controllers/models/timers.py:804
+#: ../plugin/controllers/models/timers.py:826
 msgid "Error parsing vps.xml"
-msgstr ""
+msgstr "Viga vps.xml faili parsimisel"
 
-#: ../plugin/controllers/models/timers.py:809
+#: ../plugin/controllers/models/timers.py:831
 msgid "VPS plugin not found"
-msgstr ""
+msgstr "VPS pluginat ei leitud"
 
 #: ../plugin/controllers/web.py:63
 #, python-format
@@ -498,7 +562,7 @@ msgstr "Tundmatu helitugevuse käsk %s"
 msgid "The parameter 'command' must be a number"
 msgstr "Parameeter 'käsk' peab olema number"
 
-#: ../plugin/controllers/web.py:304
+#: ../plugin/controllers/web.py:298
 #, python-format
 msgid "type %s is not a number"
 msgstr "tüüp %s ei ole number"
@@ -651,7 +715,7 @@ msgstr "Lisa autotaimer"
 msgid "Add Zap Timer"
 msgstr "Lisa kanalivahetustaimer"
 
-#: ../plugin/local.py:46
+#: ../plugin/local.py:46 ../plugin/local.py:357
 msgid "After Event"
 msgstr "Pärast sündmust"
 
@@ -711,7 +775,7 @@ msgstr "Tuuneri tööaeg"
 msgid "Brand"
 msgstr "Mark"
 
-#: ../plugin/local.py:61 ../plugin/plugin.py:92
+#: ../plugin/local.py:61 ../plugin/plugin.py:101
 msgid "Cancel"
 msgstr "Tühista"
 
@@ -726,10 +790,6 @@ msgstr "Kanal"
 #: ../plugin/local.py:64 ../plugin/local.py:305
 msgid "Channels"
 msgstr "Kanalid"
-
-#: ../plugin/local.py:65
-msgid "Chipset"
-msgstr "Kiip"
 
 #: ../plugin/local.py:66
 msgid "Cleanup Timers"
@@ -756,48 +816,44 @@ msgid "Current Event"
 msgstr "Käesolev saade"
 
 #: ../plugin/local.py:72
+msgid "Date"
+msgstr "Kuupäev"
+
+#: ../plugin/local.py:73
 msgid "Deep-Standby"
 msgstr "Puhkeseisund"
 
-#: ../plugin/local.py:73
+#: ../plugin/local.py:74
 msgid "Default"
 msgstr "Vaikimisi"
 
-#: ../plugin/local.py:74
+#: ../plugin/local.py:75
 msgid "Delete Recording"
 msgstr "Kustuta salvestis"
 
-#: ../plugin/local.py:75
+#: ../plugin/local.py:76
 msgid "Really delete the recording"
 msgstr "Kas kustutad salvestise"
 
-#: ../plugin/local.py:76
-msgid "Delete Movie"
-msgstr ""
-
 #: ../plugin/local.py:77
-msgid "Really delete the movie"
-msgstr ""
-
-#: ../plugin/local.py:78
 msgid "Delete Timer"
 msgstr "Kustuta taimer"
 
-#: ../plugin/local.py:79
+#: ../plugin/local.py:78
 msgid "Really delete the timer"
 msgstr "Kas kustutad taimeri"
 
-#: ../plugin/local.py:80 ../plugin/local.py:253
+#: ../plugin/local.py:79 ../plugin/local.py:253
 msgid "Description"
 msgstr "Sisututvustus"
 
 #: ../plugin/local.py:81
-msgid "DHCP"
-msgstr "DHCP"
-
-#: ../plugin/local.py:82
 msgid "Disable Timer"
 msgstr "Keela taimer"
+
+#: ../plugin/local.py:82
+msgid "disabled"
+msgstr "keelatud"
 
 #: ../plugin/local.py:83
 msgid "Distro"
@@ -820,8 +876,8 @@ msgid "Download Playlist for"
 msgstr "Hangi mängukava"
 
 #: ../plugin/local.py:88
-msgid "Driver date"
-msgstr "Ajurite väljalase"
+msgid "Drivers"
+msgstr "Ajurid"
 
 #: ../plugin/local.py:89
 msgid "Duration"
@@ -861,7 +917,7 @@ msgstr "Epg otsing"
 
 #: ../plugin/local.py:98
 msgid "Include description"
-msgstr "Kaas sisututvustus"
+msgstr "Hõlma sisututvustus"
 
 #: ../plugin/local.py:99
 msgid "Error"
@@ -882,10 +938,6 @@ msgstr "lõpetatud"
 #: ../plugin/local.py:103
 msgid "Firmware version"
 msgstr "Püsivara versioon"
-
-#: ../plugin/local.py:104
-msgid "Frontprocessor Version"
-msgstr "Esiprotsessori versioon"
 
 #: ../plugin/local.py:105
 msgid "Free"
@@ -948,8 +1000,8 @@ msgid "Just play"
 msgstr "Esita"
 
 #: ../plugin/local.py:123
-msgid "Kernel version"
-msgstr "Kerneli versioon"
+msgid "Kernel"
+msgstr "Kernel"
 
 #: ../plugin/local.py:124
 msgid "LICENSE"
@@ -981,7 +1033,7 @@ msgstr "Minut"
 
 #: ../plugin/local.py:131
 msgid "Model"
-msgstr "Mudel"
+msgstr "mudel"
 
 #: ../plugin/local.py:132
 msgid "Movielist"
@@ -1039,15 +1091,15 @@ msgstr "Sees"
 msgid "Open Source Web Interface for Linux set-top box"
 msgstr "Veebiliides linux vastuvõtjale"
 
-#: ../plugin/local.py:146 ../plugin/plugin.py:110
+#: ../plugin/local.py:146 ../plugin/plugin.py:119
 msgid "Show box name in header"
 msgstr "Näita päises vastuvõtja nime"
 
-#: ../plugin/local.py:147 ../plugin/plugin.py:112
+#: ../plugin/local.py:147 ../plugin/plugin.py:121
 msgid "Use custom box name"
 msgstr "Kasuta kohandatud vastuvõtja nime"
 
-#: ../plugin/local.py:148 ../plugin/plugin.py:114
+#: ../plugin/local.py:148 ../plugin/plugin.py:123
 msgid "Custom box name"
 msgstr "Kohandatud vastuvõtja nimi"
 
@@ -1085,7 +1137,7 @@ msgstr "Raadio"
 
 #: ../plugin/local.py:157
 msgid "Reboot Box"
-msgstr "Taaskäivita"
+msgstr "Taaskäivitus"
 
 #: ../plugin/local.py:158
 msgid "Recording Status"
@@ -1113,7 +1165,7 @@ msgstr "Nimeta salvestus ümber"
 
 #: ../plugin/local.py:164
 msgid "Really rename the recording"
-msgstr ""
+msgstr "Kas nimetada ümber salvestus"
 
 #: ../plugin/local.py:165
 msgid "Repeated"
@@ -1121,7 +1173,7 @@ msgstr "Korduv"
 
 #: ../plugin/local.py:166
 msgid "Restart GUI"
-msgstr "Taaskäivita E2"
+msgstr "E2 taaskäivitus"
 
 #: ../plugin/local.py:167
 msgid "running"
@@ -1140,7 +1192,7 @@ msgid "Satfinder"
 msgstr "Signaalimõõdik"
 
 #: ../plugin/local.py:171 ../plugin/local.py:321 ../plugin/local.py:373
-#: ../plugin/plugin.py:93
+#: ../plugin/plugin.py:102
 msgid "Save"
 msgstr "Salvesta"
 
@@ -1158,7 +1210,7 @@ msgstr "IMDb otsing"
 
 #: ../plugin/local.py:175
 msgid "Search KinoPoisk"
-msgstr ""
+msgstr "KinoPoisk otsing"
 
 #: ../plugin/local.py:176
 msgid "seconds"
@@ -1226,7 +1278,7 @@ msgstr "Ooteseisund"
 
 #: ../plugin/local.py:193
 msgid "Start time is after end time"
-msgstr "Algusaeg on lõppajast hilisem"
+msgstr "Algusaeg on lõpuajast hilisem"
 
 #: ../plugin/local.py:194
 msgid "Start Instant Record"
@@ -1301,8 +1353,8 @@ msgid "Title"
 msgstr "Nimi"
 
 #: ../plugin/local.py:212
-msgid "Total Memory"
-msgstr "Mälu kokku"
+msgid "Main Memory"
+msgstr "Põhimälu"
 
 #: ../plugin/local.py:213
 msgid "transcoded"
@@ -1310,7 +1362,7 @@ msgstr "transkodeeritud"
 
 #: ../plugin/local.py:214
 msgid "Transcode"
-msgstr ""
+msgstr "Transkodeeri"
 
 #: ../plugin/local.py:215
 msgid "Tuner Bit Error Rate BER"
@@ -1818,10 +1870,6 @@ msgstr "Ajavahemik (min.)"
 msgid "Interval (sec.)"
 msgstr "Ajavahemik (sek.)"
 
-#: ../plugin/local.py:357
-msgid "Afterevent"
-msgstr "Pärast saadet"
-
 #: ../plugin/local.py:358
 msgid "Force"
 msgstr "Sunnitud"
@@ -1954,69 +2002,185 @@ msgstr "Sisesta failinimi"
 msgid "Do you really want to restore from file"
 msgstr "Kas taastad failist"
 
-#: ../plugin/plugin.py:94
+#: ../plugin/local.py:398
+msgid "via"
+msgstr "üle"
+
+#: ../plugin/local.py:399
+msgid "Record+ZAP"
+msgstr "Salvestus+kanalivahetus"
+
+#: ../plugin/local.py:400
+msgid "Pmtpid"
+msgstr "Pmtpid"
+
+#: ../plugin/local.py:401
+msgid "Apid"
+msgstr "Apid"
+
+#: ../plugin/local.py:402
+msgid "Vpid"
+msgstr "Vpid"
+
+#: ../plugin/local.py:403
+msgid "Pcrpid"
+msgstr "Pcrpid"
+
+#: ../plugin/local.py:404
+msgid "Tsid"
+msgstr "Tsid"
+
+#: ../plugin/local.py:405
+msgid "Onid"
+msgstr "Onid"
+
+#: ../plugin/local.py:406
+msgid "Sid"
+msgstr "Sid"
+
+#: ../plugin/local.py:407
+msgid "Sref"
+msgstr "Sref"
+
+#: ../plugin/local.py:408
+msgid "Orbital Position"
+msgstr "Orbitaalpositsioon"
+
+#: ../plugin/local.py:410
+msgid "error! Loading Page"
+msgstr "Tõrge lehe laadimisel."
+
+#: ../plugin/local.py:411
+msgid "Timer Added"
+msgstr "Taimer lisatud"
+
+#: ../plugin/local.py:412
+msgid "Event not found"
+msgstr "Saadet ei leitud"
+
+#: ../plugin/local.py:414
+msgid "OpenWebif Browser Settings"
+msgstr "OpenWebif lehitseja seaded"
+
+#: ../plugin/local.py:415
+msgid "OpenWebif Settings"
+msgstr "OpenWebif seaded"
+
+#: ../plugin/local.py:416
+msgid "Theme"
+msgstr "Kujundus"
+
+#: ../plugin/local.py:417
+msgid "Show Picon in channel list"
+msgstr "Kuva pikon kanalinimekirjas"
+
+#: ../plugin/local.py:418
+msgid "Spinner"
+msgstr "Spinner"
+
+#: ../plugin/local.py:419
+msgid "Display duration (s)"
+msgstr "Kuva kestus"
+
+#: ../plugin/local.py:421
+msgid "Display Mode"
+msgstr ""
+
+#: ../plugin/local.py:422
+msgid "TV Guide"
+msgstr "Telekava"
+
+#: ../plugin/local.py:423
+msgid "Timeline"
+msgstr "Ajaskaala"
+
+#: ../plugin/local.py:425
+msgid "Link Speed"
+msgstr "Lingi kiirus"
+
+#: ../plugin/plugin.py:103
 msgid "OpenWebif url: http://yourip:port"
 msgstr "OpenWebif url: http://sinuip:port"
 
-#: ../plugin/plugin.py:108
+#: ../plugin/plugin.py:117
 msgid "OpenWebInterface Enabled"
 msgstr "OpenWebInterface lubatud"
 
-#: ../plugin/plugin.py:115
+#: ../plugin/plugin.py:124
 msgid "HTTP port"
 msgstr "HTTP port"
 
-#: ../plugin/plugin.py:116
+#: ../plugin/plugin.py:125
 msgid "Enable HTTP Authentication"
 msgstr "Http voogude autentimine"
 
-#: ../plugin/plugin.py:117
+#: ../plugin/plugin.py:126
 msgid "Enable HTTPS"
 msgstr "Luba HTTPS"
 
-#: ../plugin/plugin.py:119
+#: ../plugin/plugin.py:128
 msgid "HTTPS port"
 msgstr "HTTPS port"
 
-#: ../plugin/plugin.py:120
+#: ../plugin/plugin.py:129
 msgid "Enable HTTPS Authentication"
 msgstr "Https voogude autentimine"
 
-#: ../plugin/plugin.py:121
+#: ../plugin/plugin.py:130
 msgid "Require client cert for HTTPS"
 msgstr "HTTPS nõuab kliendi serti"
 
-#: ../plugin/plugin.py:123
+#: ../plugin/plugin.py:132
 msgid "Enable Authentication for streaming"
 msgstr "Luba voogesituse autentimine"
 
-#: ../plugin/plugin.py:124
+#: ../plugin/plugin.py:133
 msgid "Disable access for user root"
 msgstr "Keela juurdepääs kasutaja juurkataloogi"
 
-#: ../plugin/plugin.py:125
-msgid "Smart services renaming for XBMC"
-msgstr "Kanalinimede muutmine XBMC tarbeks"
-
-#: ../plugin/plugin.py:126
+#: ../plugin/plugin.py:134
 msgid "Enable Parental Control"
 msgstr "Luba lapselukk"
 
-#: ../plugin/plugin.py:127
+#: ../plugin/plugin.py:135
 msgid "Add service name to stream information"
 msgstr "Lisa kanalinimi voo infosse"
 
-#: ../plugin/plugin.py:129
+#: ../plugin/plugin.py:137
 msgid "Character encoding for EPG data"
 msgstr "EPG andmete tähemärgistik"
 
-#: ../plugin/plugin.py:135 ../plugin/plugin.py:194 ../plugin/plugin.py:196
-#: ../plugin/plugin.py:198
+#: ../plugin/plugin.py:146 ../plugin/plugin.py:205 ../plugin/plugin.py:207
+#: ../plugin/plugin.py:209
 msgid "OpenWebif Configuration"
 msgstr "OpenWebif seadistus"
 
-#~ msgid "VPS Overwrite"
-#~ msgstr "VPS ülekirjutamine"
+#~ msgid "Driver date"
+#~ msgstr "Ajurite väljalase"
 
-#~ msgid "SleepTimer feature not available"
-#~ msgstr "Unetaimeri võimalus puudub"
+#~ msgid "Kernel version"
+#~ msgstr "Kerneli versioon"
+
+#~ msgid "Total Memory"
+#~ msgstr "Mälu kokku"
+
+#~ msgid "Multi EPG Mode"
+#~ msgstr "Multi EPG laad"
+
+#~ msgid "Delete Movie"
+#~ msgstr "Kustuta salvestis"
+
+#~ msgid "Really delete the movie"
+#~ msgstr "Kas kustutada salvestis"
+
+#~ msgid "(shift  click for long pressure)"
+#~ msgstr "(shift  klõps = pikk nupuvajutus)"
+
+#~ msgid "Afterevent"
+#~ msgstr "Pärast saadet"
+
+#~ msgid "Smart services renaming for XBMC"
+#~ msgstr "Kanalinimede muutmine XBMC tarbeks"
+
+#~ msgid "RecordZAP"
+#~ msgstr "Salvestuskanalivahetus"

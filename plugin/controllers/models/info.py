@@ -24,7 +24,7 @@ from Tools.Directories import fileExists, pathExists
 from time import time, localtime, strftime
 from enigma import eDVBVolumecontrol, eServiceCenter, eServiceReference, eEnv
 from twisted.web import version
-from socket import has_ipv6, AF_INET6, inet_ntop, inet_pton
+from socket import has_ipv6, AF_INET6, AF_INET, inet_ntop, inet_pton, getaddrinfo
 
 try:
 	from boxbranding import getBoxType, getMachineBuild, getMachineBrand, getMachineName, getImageDistro, getImageVersion, getImageBuild, getOEVersion, getDriverDate
@@ -41,12 +41,76 @@ import sys
 import time
 import string
 
-OPENWEBIFVER = "OWIF 0.4.9"
+OPENWEBIFVER = "OWIF 1.0.2"
 
 STATICBOXINFO = None
 
 def getOpenWebifVer():
 	return OPENWEBIFVER
+
+def getFriendlyImageDistro():
+	dist = getImageDistro().replace("openatv","OpenATV").replace("openhdf","OpenHDF").replace("openpli","OpenPLi").replace("openvix","OpenViX")
+	return dist
+
+def getIPMethod(iface):
+	# iNetwork.getAdapterAttribute is crap and not portable
+	ipmethod = _("SLAAC")
+	if fileExists('/etc/network/interfaces'):
+		ifaces = '/etc/network/interfaces'
+		for line in file(ifaces).readlines():
+			if not line.startswith('#'):
+				if line.startswith('iface') and "inet6" in line and iface in line:
+					if "static" in line:
+						ipmethod = _("static")
+					if "dhcp" in line:
+						ipmethod = _("DHCP")
+					if "manual" in line:
+						ipmethod = _("manual/disabled")
+					if "6to4" in line:
+						ipmethod = "6to4"
+	return ipmethod
+
+def getIPv4Method(iface):
+	# iNetwork.getAdapterAttribute is crap and not portable
+	ipv4method = _("static")
+	if fileExists('/etc/network/interfaces'):
+		ifaces = '/etc/network/interfaces'
+		for line in file(ifaces).readlines():
+			if not line.startswith('#'):
+				if line.startswith('iface') and "inet " in line and iface in line:
+					if "static" in line:
+						ipv4method = _("static")
+					if "dhcp" in line:
+						ipv4method = _("DHCP")
+					if "manual" in line:
+						ipv4method = _("manual/disabled")
+	return ipv4method
+
+def getLinkSpeed(iface):
+	speed = _("unknown")
+	try:
+		speed = os.popen('ethtool ' + iface + ' | grep Speed: | awk \'{ print $2 }\'').read().strip()
+	except:
+		pass
+	speed = str(speed)
+	speed = speed.replace("Mb/s"," MBit/s")
+	speed = speed.replace("10000 MBit/s","10 GBit/s")
+	speed = speed.replace("1000 MBit/s","1 GBit/s")
+	return speed
+
+def getNICChipSet(iface):
+	nic = _("unknown")
+	try:
+		nic = os.popen('ethtool -i ' + iface + ' | grep driver: | awk \'{ print $2 }\'').read().strip()
+	except:
+		pass
+	nic = str(nic)
+	return nic
+
+def getFriendlyNICChipSet(iface):
+	friendlynic = getNICChipSet(iface)
+	friendlynic = friendlynic.replace("bcmgenet", "Broadcom Generic Gigabit Ethernet")
+	return friendlynic
 
 def normalize_ipv6(orig):
 	net = []
@@ -137,7 +201,7 @@ def getPiconPath():
 	else:
 		return ""
 
-def getInfo():
+def getInfo(session = None):
 	# TODO: get webif versione somewhere!
 	info = {}
 
@@ -215,10 +279,11 @@ def getInfo():
 		parts = line.split(':')
 		key = parts[0].strip()
 		if key == "MemTotal":
-			info['mem1'] = parts[1].strip()
+			info['mem1'] = parts[1].strip().replace("kB", _("kB"))
 		elif key in ("MemFree", "Buffers", "Cached"):
 			memFree += int(parts[1].strip().split(' ',1)[0])
-	info['mem2'] = "%s kB" % memFree
+	info['mem2'] = "%s %s" % (memFree,_("kB"))
+	info['mem3'] = _("%s free / %s total") % (info['mem2'],info['mem1'])
 
 	try:
 		f = open("/proc/uptime", "rb")
@@ -236,6 +301,7 @@ def getInfo():
 
 	info["webifver"] = getOpenWebifVer()
 	info['imagedistro'] = getImageDistro()
+	info['friendlyimagedistro'] = getFriendlyImageDistro()
 	info['oever'] = getOEVersion()
 	info['imagever'] = getImageVersion() + '.' + getImageBuild()
 	info['enigmaver'] = getEnigmaVersionString()
@@ -247,13 +313,30 @@ def getInfo():
 	except ImportError:
 		from Tools.DreamboxHardware import getFPVersion
 
-	info['fp_version'] = getFPVersion()
+	try:
+		info['fp_version'] = getFPVersion()
+	except:
+		info['fp_version'] = None
+
+	friendlychipsetdescription = _("Chipset")
+	friendlychipsettext = info['chipset'].replace("bcm","Broadcom ")
+	if friendlychipsettext in ("7335", "7356", "7362", "73625", "7424", "7425", "7429"):
+		friendlychipsettext = "Broadcom " + friendlychipsettext
+	if not (info['fp_version'] is None or info['fp_version'] == 0):
+		friendlychipsetdescription = friendlychipsetdescription + " (" + _("Frontprocessor Version") + ")"
+		friendlychipsettext = friendlychipsettext +  " (" + str(info['fp_version']) + ")"
+
+	info['friendlychipsetdescription'] = friendlychipsetdescription
+	info['friendlychipsettext'] = friendlychipsettext
+
 
 	info['tuners'] = []
 	for i in range(0, nimmanager.getSlotCount()):
 		info['tuners'].append({
 			"name": nimmanager.getNim(i).getSlotName(),
-			"type": nimmanager.getNimName(i) + " (" + nimmanager.getNim(i).getFriendlyType() + ")"
+			"type": nimmanager.getNimName(i) + " (" + nimmanager.getNim(i).getFriendlyType() + ")",
+			"rec": "",
+			"live": ""
 		})
 
 	info['ifaces'] = []
@@ -261,13 +344,17 @@ def getInfo():
 	for iface in ifaces:
 		info['ifaces'].append({
 			"name": iNetwork.getAdapterName(iface),
+			"friendlynic": getFriendlyNICChipSet(iface),
+			"linkspeed": getLinkSpeed(iface),
 			"mac": iNetwork.getAdapterAttribute(iface, "mac"),
 			"dhcp": iNetwork.getAdapterAttribute(iface, "dhcp"),
+			"ipv4method": getIPv4Method(iface),
 			"ip": formatIp(iNetwork.getAdapterAttribute(iface, "ip")),
 			"mask": formatIp(iNetwork.getAdapterAttribute(iface, "netmask")),
 			"v4prefix": sum([bin(int(x)).count('1') for x in formatIp(iNetwork.getAdapterAttribute(iface, "netmask")).split('.')]),
 			"gw": formatIp(iNetwork.getAdapterAttribute(iface, "gateway")),
 			"ipv6": getAdapterIPv6(iface)['addr'],
+			"ipmethod": getIPMethod(iface),
 			"firstpublic": getAdapterIPv6(iface)['firstpublic']
 		})
 
@@ -281,18 +368,18 @@ def getInfo():
 			free = -1
 		
 		if free <= 1024:
-			free = "%i MB" % free
+			free = "%i %s" % (free,_("MB"))
 		else:
 			free = free / 1024.
-			free = "%.3f GB" % free
+			free = "%.1f %s" % (free,_("GB"))
 
 		size = hdd.diskSize() * 1000000 / 1048576.
 		if size > 1048576:
-			size = "%.2f TB" % (size / 1048576.)
+			size = "%.1f %s" % ((size / 1048576.),_("TB"))
 		elif size > 1024:
-			size = "%.1f GB" % (size / 1024.)
+			size = "%.1f %s" % ((size / 1024.),_("GB"))
 		else:
-			size = "%d MB" % size
+			size = "%d %s" % (size,_("MB"))
 
 		iecsize = hdd.diskSize()
 		# Harddisks > 1000 decimal Gigabytes are labelled in TB
@@ -300,24 +387,100 @@ def getInfo():
 			iecsize = (iecsize + 50000) // float(100000) / 10
 			# Omit decimal fraction if it is 0
 			if (iecsize % 1 > 0):
-				iecsize = "%.1f TB" % iecsize
+				iecsize = "%.1f %s" % (iecsize,_("TB"))
 			else:
-				iecsize = "%d TB" % iecsize
+				iecsize = "%d %s" % (iecsize,_("TB"))
 		# Round harddisk sizes beyond ~300GB to full tens: 320, 500, 640, 750GB
 		elif iecsize > 300000:
-			iecsize = "%d GB" % ((iecsize + 5000) // 10000 * 10)
+			iecsize = "%d %s" % (((iecsize + 5000) // 10000 * 10),_("GB"))
 		# ... be more precise for media < ~300GB (Sticks, SSDs, CF, MMC, ...): 1, 2, 4, 8, 16 ... 256GB
 		elif iecsize > 1000:
-			iecsize = "%d GB" % ((iecsize + 500) // 1000)
+			iecsize = "%d %s" % (((iecsize + 500) // 1000),_("GB"))
 		else:
-			iecsize = "%d MB" % iecsize
+			iecsize = "%d %s" % (iecsize,_("MB"))
 
 		info['hdd'].append({
 			"model": hdd.model(),
 			"capacity": size,
 			"labelled_capacity": iecsize,
-			"free": free
+			"free": free,
+			"mount": dev,
+			"friendlycapacity": _("%s free / %s total") % (free,size+' ("'+iecsize+'")')
 		})
+
+	info['shares'] = []
+	if fileExists('/etc/auto.network'):
+		autofs = '/etc/auto.network'
+		method = "autofs"
+		for line in file(autofs).readlines():
+			if not line.startswith('#'):
+				# Replace escaped spaces that can appear inside credentials with underscores
+				# Not elegant but we wouldn't want to expose credentials on the OWIF anyways
+				tmpline = line.replace("\ ","_")
+				tmp = tmpline.split()
+				if not len(tmp) == 3:
+					continue
+				name = tmp[0].strip()
+				type = "unknown"
+				if "cifs" in tmp[1]:
+					# Linux still defaults to SMBv1
+					type = "SMBv1.0"
+					settings = tmp[1].split(",")
+					for setting in settings:
+						if setting.startswith("vers="):
+							type = setting.replace("vers=", "SMBv")
+				elif "nfs" in tmp[1]:
+					type = "NFS"
+
+				# Default is r/w
+				mode = _("r/w")
+				settings = tmp[1].split(",")
+				for setting in settings:
+					if setting == "ro":
+						mode = _("r/o")
+
+				uri = tmp[2]
+				parts = []
+				parts = tmp[2].split(':')
+				if parts[0] is "":
+					server = uri.split('/')[2]
+					uri = uri.strip()[1:]
+				else:
+					server = parts[0]
+
+				ipaddress  = None
+				if server:
+					# Will fail on literal IPs
+					try:
+						# Try IPv6 first, as will Linux
+						if has_ipv6:
+							tmpaddress = None
+							tmpaddress = getaddrinfo(server, 0, AF_INET6)
+							if tmpaddress:
+								ipaddress = "[" + list(tmpaddress)[0][4][0] + "]"
+						# Use IPv4 if IPv6 fails or is not present
+						if ipaddress is None:
+							tmpaddress = None
+							tmpaddress = getaddrinfo(server, 0, AF_INET)
+							if tmpaddress:
+								ipaddress = list(tmpaddress)[0][4][0]
+					except:
+						pass
+						
+				friendlyaddress = server
+				if ipaddress is not None and not ipaddress == server:
+					friendlyaddress = server + " ("+ ipaddress + ")"
+				info['shares'].append({
+					"name": name,
+					"method": method,
+					"type": type,
+					"mode": mode,
+					"path": uri,
+					"host": server,
+					"ipaddress": ipaddress,
+					"friendlyaddress": friendlyaddress
+				})
+	# TODO: fstab
 
 	info['transcoding'] = False
 	if (info['model'] in ("Solo²", "vusolo2", "Duo²", "Solo SE", "hd2400", "Quad", "gbquad", "Quad Plus", "gbquadplus", "xpeedlx3", "atemionemesis") or info['machinebuild'] in ('inihdp', 'hd2400', 'et10000', 'xpeedlx3', 'ew7356', 'dags3', 'dags4')):
@@ -330,9 +493,80 @@ def getInfo():
 		if l in language.getLanguage():
 			info['kinopoisk'] = True
 
+	info['EX'] = ''
+
+	if session:
+		try:
+			recs = NavigationInstance.instance.getRecordings()
+			if recs:
+				# only one stream and only TV
+				from Plugins.Extensions.OpenWebif.controllers.stream import streamList
+				s_name = ''
+				s_cip = ''
+				if len(streamList)==1:
+					from Screens.ChannelSelection import service_types_tv
+					from enigma import eEPGCache
+					epgcache = eEPGCache.getInstance()
+					serviceHandler = eServiceCenter.getInstance()
+					services = serviceHandler.list(eServiceReference('%s ORDER BY name'%(service_types_tv)))
+					channels = services and services.getContent("SN", True)
+					s = streamList[0]
+					srefs = s.ref.toString()
+					for channel in channels:
+						if srefs == channel[0]:
+							s_name = channel[1] + ' (' + s.clientIP + ')'
+							break
+
+				sname = ''
+				timers = []
+				for timer in NavigationInstance.instance.RecordTimer.timer_list:
+					if timer.isRunning() and not timer.justplay:
+						timers.append(timer.service_ref.getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', ''))
+				# only one recording
+				if len(timers) == 1:
+					sname = timers[0]
+					
+				if sname == '' and s_name != '':
+					sname = s_name
+
+				for rec in recs:
+					feinfo = rec.frontendInfo()
+					frontendData = feinfo and feinfo.getAll(True)
+					if frontendData is not None:
+						cur_info = feinfo.getTransponderData(True)
+						if cur_info:
+							nr = frontendData['tuner_number']
+							info['tuners'][nr]['rec'] = getOrbitalText(cur_info) + ' / ' + sname
+
+			service = session.nav.getCurrentService()
+			if service is not None:
+				sname = service.info().getName()
+				feinfo = service.frontendInfo()
+				frontendData = feinfo and feinfo.getAll(True)
+				if frontendData is not None:
+					cur_info = feinfo.getTransponderData(True)
+					if cur_info:
+						nr = frontendData['tuner_number']
+						info['tuners'][nr]['live'] = getOrbitalText(cur_info) + ' / ' + sname
+		except Exception, error:
+			info['EX'] = error
+
 	global STATICBOXINFO
 	STATICBOXINFO = info
 	return info
+
+def getOrbitalText(cur_info):
+	if cur_info:
+		tunerType = cur_info.get('tuner_type')
+		if tunerType == "DVB-S":
+			pos = int(cur_info.get('orbital_position'))
+			direction = 'E'
+			if pos > 1800:
+				pos = 3600 - pos
+				direction = 'W'
+			return "%d.%d° %s" % (pos/10, pos%10, direction)
+		return tunerType
+	return ''
 
 def getFrontendStatus(session):
 	inf = {}

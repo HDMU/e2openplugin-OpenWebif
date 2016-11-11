@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: OpenWebif\n"
-"POT-Creation-Date: 2016-04-30 20:14+0200\n"
+"POT-Creation-Date: 2016-11-05 14:49+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: plnick\n"
 "Language-Team: \n"
@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.6\n"
+"X-Generator: Poedit 1.8.11\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: ../plugin\n"
 
@@ -256,38 +256,103 @@ msgstr ""
 msgid "Error, %s does not exists, restore is not possible..."
 msgstr ""
 
-#: ../plugin/controllers/base.py:221 ../plugin/local.py:181
+#: ../plugin/controllers/base.py:264 ../plugin/local.py:181
 #: ../plugin/local.py:325
 msgid "Settings"
 msgstr "Einstellungen"
 
-#: ../plugin/controllers/base.py:236
+#: ../plugin/controllers/base.py:280
 msgid "LCD4Linux Setup"
 msgstr "LCD4Linux-Einstellungen"
 
-#: ../plugin/controllers/base.py:240
+#: ../plugin/controllers/base.py:305
+msgid "OSCam Webinterface"
+msgstr "OSCam-Webinterface"
+
+#: ../plugin/controllers/base.py:309
 msgid "AutoTimer"
 msgstr ""
 
-#: ../plugin/controllers/base.py:244
+#: ../plugin/controllers/base.py:314
 msgid "BouquetEditor"
 msgstr "Bouquet-Editor"
 
-#: ../plugin/controllers/base.py:248
+#: ../plugin/controllers/base.py:318
 msgid "EPGRefresh"
 msgstr ""
 
-#: ../plugin/controllers/models/info.py:71 ../plugin/local.py:115
+#: ../plugin/controllers/models/info.py:57
+msgid "SLAAC"
+msgstr ""
+
+#: ../plugin/controllers/models/info.py:64
+#: ../plugin/controllers/models/info.py:75
+#: ../plugin/controllers/models/info.py:82
+msgid "static"
+msgstr "statisch"
+
+#: ../plugin/controllers/models/info.py:66
+#: ../plugin/controllers/models/info.py:84 ../plugin/local.py:80
+msgid "DHCP"
+msgstr "DHCP"
+
+#: ../plugin/controllers/models/info.py:68
+#: ../plugin/controllers/models/info.py:86
+msgid "manual/disabled"
+msgstr "manuell/deaktiviert"
+
+#: ../plugin/controllers/models/info.py:90
+#: ../plugin/controllers/models/info.py:102
+msgid "unknown"
+msgstr "unbekannt"
+
+#: ../plugin/controllers/models/info.py:135 ../plugin/local.py:115
 msgid "IPv4-only kernel"
 msgstr "Kernel ohne IPv6-Unterstützung"
 
-#: ../plugin/controllers/models/info.py:75 ../plugin/local.py:117
+#: ../plugin/controllers/models/info.py:139 ../plugin/local.py:117
 msgid "IPv4-only Python/Twisted"
 msgstr "Python/Twisted ohne IPv6-Unterstützung"
 
-#: ../plugin/controllers/models/info.py:104 ../plugin/local.py:116
+#: ../plugin/controllers/models/info.py:168 ../plugin/local.py:116
 msgid "none/IPv4-only network"
 msgstr "keine/reines IPv4-Netzwerk"
+
+#: ../plugin/controllers/models/info.py:286
+#: ../plugin/controllers/models/info.py:402
+#, python-format
+msgid "%s free / %s total"
+msgstr "%s frei / %s insgesamt"
+
+#: ../plugin/controllers/models/info.py:318 ../plugin/local.py:65
+msgid "Chipset"
+msgstr "Chipsatz"
+
+#: ../plugin/controllers/models/info.py:321 ../plugin/local.py:104
+msgid "Frontprocessor Version"
+msgstr "Frontprozessor-Version"
+
+msgid "kB"
+msgstr "kB"
+
+#: ../plugin/controllers/models/info.py:366
+#: ../plugin/controllers/models/info.py:377
+#: ../plugin/controllers/models/info.py:395
+msgid "MB"
+msgstr "MB"
+
+#: ../plugin/controllers/models/info.py:369
+#: ../plugin/controllers/models/info.py:375
+#: ../plugin/controllers/models/info.py:390
+#: ../plugin/controllers/models/info.py:393
+msgid "GB"
+msgstr "GB"
+
+#: ../plugin/controllers/models/info.py:373
+#: ../plugin/controllers/models/info.py:385
+#: ../plugin/controllers/models/info.py:387
+msgid "TB"
+msgstr "TB"
 
 #: ../plugin/controllers/models/message.py:33
 msgid "Message sent successfully!"
@@ -305,173 +370,173 @@ msgstr "Antwort lautet JA!"
 msgid "Answer is NO!"
 msgstr "Antwort lautet NEIN!"
 
-#: ../plugin/controllers/models/services.py:251
+#: ../plugin/controllers/models/services.py:260
 msgid "New"
 msgstr "Neu"
 
-#: ../plugin/controllers/models/services.py:253
+#: ../plugin/controllers/models/services.py:262
 msgid "Services"
 msgstr "Sender"
 
-#: ../plugin/controllers/models/services.py:258
+#: ../plugin/controllers/models/services.py:267
 msgid "Cable"
 msgstr "Kabel"
 
-#: ../plugin/controllers/models/services.py:260
+#: ../plugin/controllers/models/services.py:269
 msgid "Terrestrial"
 msgstr "Terrestrisch"
 
-#: ../plugin/controllers/models/services.py:264
+#: ../plugin/controllers/models/services.py:273
 msgid "W"
 msgstr "W"
 
-#: ../plugin/controllers/models/services.py:266
+#: ../plugin/controllers/models/services.py:275
 msgid "E"
 msgstr "O"
 
-#: ../plugin/controllers/models/timers.py:172
+#: ../plugin/controllers/models/timers.py:178
 #, python-format
 msgid "Conflicting Timer(s) detected! %s"
 msgstr "Timerkonflikt(e) gefunden! %s"
 
-#: ../plugin/controllers/models/timers.py:188
+#: ../plugin/controllers/models/timers.py:195
 #, python-format
 msgid "Could not add timer '%s'!"
 msgstr "Timer '%s' konnte nicht zugefügt werden!"
 
-#: ../plugin/controllers/models/timers.py:193
+#: ../plugin/controllers/models/timers.py:200
 #, python-format
 msgid "Timer '%s' added"
 msgstr "Timer '%s' zugefügt"
 
-#: ../plugin/controllers/models/timers.py:201
+#: ../plugin/controllers/models/timers.py:208
 msgid "EventId not found"
 msgstr "EventId nicht gefunden"
 
-#: ../plugin/controllers/models/timers.py:272
+#: ../plugin/controllers/models/timers.py:279
 #, python-format
 msgid "Timer '%s' changed"
 msgstr "Timer '%s' geändert"
 
-#: ../plugin/controllers/models/timers.py:277
+#: ../plugin/controllers/models/timers.py:298
 #, python-format
 msgid "Timer '%s' not saved while Conflict"
 msgstr "Timer '%s' wegen Konflikt nicht gespeichert"
 
-#: ../plugin/controllers/models/timers.py:282
+#: ../plugin/controllers/models/timers.py:304
 #, python-format
 msgid "Could not find timer '%s' with given start and end time!"
 msgstr "Timer '%s' mit angegebener Start-/Endzeit nicht gefunden!"
 
-#: ../plugin/controllers/models/timers.py:294
+#: ../plugin/controllers/models/timers.py:316
 #, python-format
 msgid "The timer '%s' has been deleted successfully"
 msgstr "Timer '%s' erfolgreich gelöscht"
 
-#: ../plugin/controllers/models/timers.py:299
-#: ../plugin/controllers/models/timers.py:343
+#: ../plugin/controllers/models/timers.py:321
+#: ../plugin/controllers/models/timers.py:365
 msgid "No matching Timer found"
 msgstr "Kein entsprechender Timer gefunden"
 
-#: ../plugin/controllers/models/timers.py:317
+#: ../plugin/controllers/models/timers.py:339
 #, python-format
 msgid "Timer '%s' not enabled while Conflict"
 msgstr ""
 
-#: ../plugin/controllers/models/timers.py:323
+#: ../plugin/controllers/models/timers.py:345
 #, python-format
 msgid "Timer '%s' already exists!"
 msgstr ""
 
-#: ../plugin/controllers/models/timers.py:329
+#: ../plugin/controllers/models/timers.py:351
 #, python-format
 msgid "The timer '%s' now recorded! Not disabled!"
 msgstr ""
 
-#: ../plugin/controllers/models/timers.py:337
+#: ../plugin/controllers/models/timers.py:359
 #, python-format
 msgid "The timer '%s' has been %s successfully"
 msgstr "Timer '%s' wurde erfolgreich %s"
 
-#: ../plugin/controllers/models/timers.py:350
+#: ../plugin/controllers/models/timers.py:372
 msgid "List of Timers has been cleaned"
 msgstr "Timerliste wurde aufgeräumt"
 
-#: ../plugin/controllers/models/timers.py:357
+#: ../plugin/controllers/models/timers.py:379
 msgid "TimerList has been saved"
 msgstr "Timerliste wurde gespeichert"
 
-#: ../plugin/controllers/models/timers.py:372
+#: ../plugin/controllers/models/timers.py:394
 msgid "No event found! Not recording!"
 msgstr "Keine Sendung gefunden! Keine Aufnahme!"
 
-#: ../plugin/controllers/models/timers.py:378
+#: ../plugin/controllers/models/timers.py:400
 msgid "Instant record for current Event started"
 msgstr "Sofortaufnahme für aktuelle Sendung gestartet"
 
-#: ../plugin/controllers/models/timers.py:387
+#: ../plugin/controllers/models/timers.py:409
 msgid "Infinite Instant recording started"
 msgstr "Unbegrenzte Sofortaufnahme gestartet"
 
-#: ../plugin/controllers/models/timers.py:406
+#: ../plugin/controllers/models/timers.py:428
 msgid "Timer conflict detected! Not recording!"
 msgstr "Timerkonflikt gefunden! Keine Aufnahme!"
 
-#: ../plugin/controllers/models/timers.py:480
+#: ../plugin/controllers/models/timers.py:502
 msgid "Missing requesteter: sRef"
 msgstr "Fehlende Angabe: sRef"
 
-#: ../plugin/controllers/models/timers.py:502
+#: ../plugin/controllers/models/timers.py:524
 #, python-format
 msgid "Unknown command: '%s'"
 msgstr "Unbekanntes Kommando: '%s'"
 
-#: ../plugin/controllers/models/timers.py:559
+#: ../plugin/controllers/models/timers.py:581
 msgid "PowerTimer feature not available"
 msgstr "PowerTimer-Funktion nicht verfügbar"
 
-#: ../plugin/controllers/models/timers.py:635
-#: ../plugin/controllers/models/timers.py:661
+#: ../plugin/controllers/models/timers.py:657
+#: ../plugin/controllers/models/timers.py:683
 msgid "Sleeptimer is enabled"
 msgstr "SleepTimer aktiviert"
 
-#: ../plugin/controllers/models/timers.py:635
-#: ../plugin/controllers/models/timers.py:661
+#: ../plugin/controllers/models/timers.py:657
+#: ../plugin/controllers/models/timers.py:683
 msgid "Sleeptimer is disabled"
 msgstr "SleepTimer deaktiviert"
 
-#: ../plugin/controllers/models/timers.py:640
-#: ../plugin/controllers/models/timers.py:667
+#: ../plugin/controllers/models/timers.py:662
+#: ../plugin/controllers/models/timers.py:689
 msgid "SleepTimer error"
 msgstr ""
 
-#: ../plugin/controllers/models/timers.py:679
+#: ../plugin/controllers/models/timers.py:701
 msgid "ERROR: Cannot set SleepTimer while device is in Standby-Mode"
 msgstr "FEHLER: SleepTimer im Standby nicht verfügbar"
 
-#: ../plugin/controllers/models/timers.py:684
-#: ../plugin/controllers/models/timers.py:753
-#: ../plugin/controllers/models/timers.py:771
+#: ../plugin/controllers/models/timers.py:706
+#: ../plugin/controllers/models/timers.py:775
+#: ../plugin/controllers/models/timers.py:793
 msgid "Sleeptimer has been disabled"
 msgstr "SleepTimer wurde deaktiviert"
 
-#: ../plugin/controllers/models/timers.py:690
-#: ../plugin/controllers/models/timers.py:753
-#: ../plugin/controllers/models/timers.py:766
+#: ../plugin/controllers/models/timers.py:712
+#: ../plugin/controllers/models/timers.py:775
+#: ../plugin/controllers/models/timers.py:788
 #, python-format
 msgid "Sleeptimer set to %d minutes"
 msgstr "SleepTimer eingestellt auf %d Minuten"
 
-#: ../plugin/controllers/models/timers.py:695
-#: ../plugin/controllers/models/timers.py:776
+#: ../plugin/controllers/models/timers.py:717
+#: ../plugin/controllers/models/timers.py:798
 msgid "SleepTimer Error"
 msgstr ""
 
-#: ../plugin/controllers/models/timers.py:804
+#: ../plugin/controllers/models/timers.py:826
 msgid "Error parsing vps.xml"
 msgstr ""
 
-#: ../plugin/controllers/models/timers.py:809
+#: ../plugin/controllers/models/timers.py:831
 msgid "VPS plugin not found"
 msgstr ""
 
@@ -499,7 +564,7 @@ msgstr "Unbekannter Befehl %s für die Lautstärkesteuerung"
 msgid "The parameter 'command' must be a number"
 msgstr "Der Parameter 'command' muss eine Zahl sein"
 
-#: ../plugin/controllers/web.py:304
+#: ../plugin/controllers/web.py:298
 #, python-format
 msgid "type %s is not a number"
 msgstr "der Typ %s ist keine Zahl"
@@ -652,7 +717,7 @@ msgstr "AutoTimer anlegen"
 msgid "Add Zap Timer"
 msgstr "Umschalttimer anlegen"
 
-#: ../plugin/local.py:46
+#: ../plugin/local.py:46 ../plugin/local.py:357
 msgid "After Event"
 msgstr "Danach"
 
@@ -712,7 +777,7 @@ msgstr "Receiver-Laufzeit"
 msgid "Brand"
 msgstr "Marke"
 
-#: ../plugin/local.py:61 ../plugin/plugin.py:92
+#: ../plugin/local.py:61 ../plugin/plugin.py:101
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -727,10 +792,6 @@ msgstr "Kanal"
 #: ../plugin/local.py:64 ../plugin/local.py:305
 msgid "Channels"
 msgstr "Kanäle"
-
-#: ../plugin/local.py:65
-msgid "Chipset"
-msgstr "Chipsatz"
 
 #: ../plugin/local.py:66
 msgid "Cleanup Timers"
@@ -757,48 +818,44 @@ msgid "Current Event"
 msgstr "Aktuelle Sendung"
 
 #: ../plugin/local.py:72
+msgid "Date"
+msgstr ""
+
+#: ../plugin/local.py:73
 msgid "Deep-Standby"
 msgstr "Ausschalten"
 
-#: ../plugin/local.py:73
+#: ../plugin/local.py:74
 msgid "Default"
 msgstr "Standard"
 
-#: ../plugin/local.py:74
+#: ../plugin/local.py:75
 msgid "Delete Recording"
 msgstr "Aufnahme löschen"
 
-#: ../plugin/local.py:75
+#: ../plugin/local.py:76
 msgid "Really delete the recording"
 msgstr "Soll die Aufnahme gelöscht werden"
 
-#: ../plugin/local.py:76
-msgid "Delete Movie"
-msgstr ""
-
 #: ../plugin/local.py:77
-msgid "Really delete the movie"
-msgstr ""
-
-#: ../plugin/local.py:78
 msgid "Delete Timer"
 msgstr "Timer löschen"
 
-#: ../plugin/local.py:79
+#: ../plugin/local.py:78
 msgid "Really delete the timer"
 msgstr "Soll der Timer gelöscht werden"
 
-#: ../plugin/local.py:80 ../plugin/local.py:253
+#: ../plugin/local.py:79 ../plugin/local.py:253
 msgid "Description"
 msgstr "Beschreibung"
 
 #: ../plugin/local.py:81
-msgid "DHCP"
-msgstr "DHCP"
-
-#: ../plugin/local.py:82
 msgid "Disable Timer"
 msgstr "Timer deaktivieren"
+
+#: ../plugin/local.py:82
+msgid "disabled"
+msgstr "deaktiviert"
 
 #: ../plugin/local.py:83
 msgid "Distro"
@@ -821,8 +878,8 @@ msgid "Download Playlist for"
 msgstr "Herunterladen der Wiedergabeliste für"
 
 #: ../plugin/local.py:88
-msgid "Driver date"
-msgstr "Treiberversion"
+msgid "Drivers"
+msgstr "Treiber"
 
 #: ../plugin/local.py:89
 msgid "Duration"
@@ -838,7 +895,7 @@ msgstr "Timer aktivieren"
 
 #: ../plugin/local.py:92
 msgid "Start"
-msgstr ""
+msgstr "Start"
 
 #: ../plugin/local.py:93 ../plugin/local.py:353
 msgid "End"
@@ -883,10 +940,6 @@ msgstr "beendet"
 #: ../plugin/local.py:103
 msgid "Firmware version"
 msgstr "Firmware-Version"
-
-#: ../plugin/local.py:104
-msgid "Frontprocessor Version"
-msgstr "Frontprozessor-Version"
 
 #: ../plugin/local.py:105
 msgid "Free"
@@ -946,11 +999,11 @@ msgstr "Javascript-Bibliothek"
 
 #: ../plugin/local.py:122
 msgid "Just play"
-msgstr "Umschaltt."
+msgstr "Umschalttimer"
 
 #: ../plugin/local.py:123
-msgid "Kernel version"
-msgstr "Kernelversion"
+msgid "Kernel"
+msgstr "Kernel"
 
 #: ../plugin/local.py:124
 msgid "LICENSE"
@@ -1040,15 +1093,15 @@ msgstr "Ein"
 msgid "Open Source Web Interface for Linux set-top box"
 msgstr "Quelloffenes Webinterface für Linux-Receiver"
 
-#: ../plugin/local.py:146 ../plugin/plugin.py:110
+#: ../plugin/local.py:146 ../plugin/plugin.py:119
 msgid "Show box name in header"
 msgstr "Boxnamen in der Kopfzeile anzeigen"
 
-#: ../plugin/local.py:147 ../plugin/plugin.py:112
+#: ../plugin/local.py:147 ../plugin/plugin.py:121
 msgid "Use custom box name"
 msgstr "Eigenen Boxnamen verwenden"
 
-#: ../plugin/local.py:148 ../plugin/plugin.py:114
+#: ../plugin/local.py:148 ../plugin/plugin.py:123
 msgid "Custom box name"
 msgstr "Eigener Boxname"
 
@@ -1141,7 +1194,7 @@ msgid "Satfinder"
 msgstr "Satellitenfinder"
 
 #: ../plugin/local.py:171 ../plugin/local.py:321 ../plugin/local.py:373
-#: ../plugin/plugin.py:93
+#: ../plugin/plugin.py:102
 msgid "Save"
 msgstr "Speichern"
 
@@ -1159,7 +1212,7 @@ msgstr "Durchsuche IMDb"
 
 #: ../plugin/local.py:175
 msgid "Search KinoPoisk"
-msgstr ""
+msgstr "Suche KinoPoisk"
 
 #: ../plugin/local.py:176
 msgid "seconds"
@@ -1302,8 +1355,8 @@ msgid "Title"
 msgstr "Titel"
 
 #: ../plugin/local.py:212
-msgid "Total Memory"
-msgstr "Gesamtspeicher"
+msgid "Main Memory"
+msgstr "Hauptspeicher"
 
 #: ../plugin/local.py:213
 msgid "transcoded"
@@ -1311,7 +1364,7 @@ msgstr "transkodiert"
 
 #: ../plugin/local.py:214
 msgid "Transcode"
-msgstr ""
+msgstr "Transcodieren"
 
 #: ../plugin/local.py:215
 msgid "Tuner Bit Error Rate BER"
@@ -1817,10 +1870,6 @@ msgstr "Intervall (Min.)"
 msgid "Interval (sec.)"
 msgstr "Intervall (Sek.)"
 
-#: ../plugin/local.py:357
-msgid "Afterevent"
-msgstr ""
-
 #: ../plugin/local.py:358
 msgid "Force"
 msgstr "Erzwingen"
@@ -1953,69 +2002,176 @@ msgstr "Bitte den Dateinamen angeben"
 msgid "Do you really want to restore from file"
 msgstr "Wollen Sie diese Datei wirklich importieren"
 
-#: ../plugin/plugin.py:94
+#: ../plugin/local.py:398
+msgid "via"
+msgstr ""
+
+#: ../plugin/local.py:399
+msgid "Record+ZAP"
+msgstr "Umschalten und aufnehmen"
+
+#: ../plugin/local.py:400
+msgid "Pmtpid"
+msgstr ""
+
+#: ../plugin/local.py:401
+msgid "Apid"
+msgstr ""
+
+#: ../plugin/local.py:402
+msgid "Vpid"
+msgstr ""
+
+#: ../plugin/local.py:403
+msgid "Pcrpid"
+msgstr ""
+
+#: ../plugin/local.py:404
+msgid "Tsid"
+msgstr ""
+
+#: ../plugin/local.py:405
+msgid "Onid"
+msgstr ""
+
+#: ../plugin/local.py:406
+msgid "Sid"
+msgstr ""
+
+#: ../plugin/local.py:407
+msgid "Sref"
+msgstr ""
+
+#: ../plugin/local.py:408
+msgid "Orbital Position"
+msgstr ""
+
+#: ../plugin/local.py:410
+msgid "error! Loading Page"
+msgstr "Fehler! beim Laden der Seite"
+
+#: ../plugin/local.py:411
+msgid "Timer Added"
+msgstr "Timer Hinzugefügt"
+
+#: ../plugin/local.py:412
+msgid "Event not found"
+msgstr "Event nicht gefunden"
+
+#: ../plugin/local.py:414
+msgid "OpenWebif Browser Settings"
+msgstr "OpenWebif Browser Einstellungen"
+
+#: ../plugin/local.py:415
+msgid "OpenWebif Settings"
+msgstr "OpenWebif Einstellungen"
+
+#: ../plugin/local.py:416
+msgid "Theme"
+msgstr "Theme"
+
+#: ../plugin/local.py:417
+msgid "Show Picon in channel list"
+msgstr "Zeige Picon in Senderliste"
+
+#: ../plugin/local.py:418
+msgid "Spinner"
+msgstr "Spinner"
+
+#: ../plugin/local.py:419
+msgid "Display duration (s)"
+msgstr "Anzeigedauer (s)"
+
+#: ../plugin/local.py:421
+msgid "Display Mode"
+msgstr "Anzeigemodus"
+
+#: ../plugin/local.py:422
+msgid "TV Guide"
+msgstr "Zeitschrift"
+
+#: ../plugin/local.py:423
+msgid "Timeline"
+msgstr "Zeitstrahl"
+
+#: ../plugin/local.py:425
+msgid "Link Speed"
+msgstr "Verbindungsgeschwindigkeit"
+
+#: ../plugin/plugin.py:103
 msgid "OpenWebif url: http://yourip:port"
 msgstr "OpenWebif-URL: http://ip_des_receivers:port"
 
-#: ../plugin/plugin.py:108
+#: ../plugin/plugin.py:117
 msgid "OpenWebInterface Enabled"
 msgstr "OpenWebinterface einschalten"
 
-#: ../plugin/plugin.py:115
+#: ../plugin/plugin.py:124
 msgid "HTTP port"
 msgstr "Port für HTTP"
 
-#: ../plugin/plugin.py:116
+#: ../plugin/plugin.py:125
 msgid "Enable HTTP Authentication"
 msgstr "Authentifizierung für HTTP aktivieren"
 
-#: ../plugin/plugin.py:117
+#: ../plugin/plugin.py:126
 msgid "Enable HTTPS"
 msgstr "Aktivierung von HTTPS"
 
-#: ../plugin/plugin.py:119
+#: ../plugin/plugin.py:128
 msgid "HTTPS port"
 msgstr "Port für HTTPS"
 
-#: ../plugin/plugin.py:120
+#: ../plugin/plugin.py:129
 msgid "Enable HTTPS Authentication"
 msgstr "Authentifizierung für HTTPS aktivieren"
 
-#: ../plugin/plugin.py:121
+#: ../plugin/plugin.py:130
 msgid "Require client cert for HTTPS"
 msgstr "Erzwinge zertifikatbasierte Anmeldung"
 
-#: ../plugin/plugin.py:123
+#: ../plugin/plugin.py:132
 msgid "Enable Authentication for streaming"
 msgstr "Authentifizierung für Streaming aktivieren"
 
-#: ../plugin/plugin.py:124
+#: ../plugin/plugin.py:133
 msgid "Disable access for user root"
 msgstr "Anmeldung als Benutzer root verbieten"
 
-#: ../plugin/plugin.py:125
-msgid "Smart services renaming for XBMC"
-msgstr "Sendernamen für XBMC umbenennen"
-
-#: ../plugin/plugin.py:126
+#: ../plugin/plugin.py:134
 msgid "Enable Parental Control"
 msgstr "Kindersicherung aktivieren"
 
-#: ../plugin/plugin.py:127
+#: ../plugin/plugin.py:135
 msgid "Add service name to stream information"
 msgstr "Servicenamen zu den Streaminformationen hinzufügen"
 
-#: ../plugin/plugin.py:129
+#: ../plugin/plugin.py:137
 msgid "Character encoding for EPG data"
 msgstr "Zeichenkodierung der EPG Daten"
 
-#: ../plugin/plugin.py:135 ../plugin/plugin.py:194 ../plugin/plugin.py:196
-#: ../plugin/plugin.py:198
+#: ../plugin/plugin.py:146 ../plugin/plugin.py:205 ../plugin/plugin.py:207
+#: ../plugin/plugin.py:209
 msgid "OpenWebif Configuration"
 msgstr "OpenWebif-Konfiguration"
+
+#~ msgid "Multi EPG Mode"
+#~ msgstr "Multi EPG Modus"
+
+#~ msgid "Smart services renaming for XBMC"
+#~ msgstr "Sendernamen für XBMC umbenennen"
 
 #~ msgid "VPS Overwrite"
 #~ msgstr "VPS überschreiben"
 
 #~ msgid "SleepTimer feature not available"
 #~ msgstr "SleepTimer-Funktion nicht verfügbar"
+
+msgid "Network Shares"
+msgstr "Netzwerk-Freigaben"
+
+msgid "using"
+msgstr "mittels"
+
+msgid "Show Picons in channel list"
+msgstr "Picons in der Senderliste anzeigen"

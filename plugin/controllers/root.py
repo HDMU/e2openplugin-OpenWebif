@@ -43,6 +43,7 @@ class RootController(BaseController):
 		self.putChild("css", static.File(getPublicPath() + "/css"))
 		self.putChild("static", static.File(getPublicPath() + "/static"))
 		self.putChild("images", static.File(getPublicPath() + "/images"))
+		self.putChild("fonts", static.File(getPublicPath() + "/fonts"))
 		self.putChild("ipkg", IpkgController(session))
 		self.putChild("autotimer", ATController(session))
 		self.putChild("serienrecorder", SRController(session))
@@ -67,7 +68,7 @@ class RootController(BaseController):
 			mode = request.args["mode"][0]
 		uagent = request.getHeader('User-Agent')
 		if uagent and mode != 'fullpage':
-			if uagent.lower().find("iphone") != -1 or uagent.lower().find("ipod") != -1 or uagent.lower().find("blackberry") != -1 or uagent.lower().find("android") != -1 or uagent.lower().find("mobile") != -1:
+			if uagent.lower().find("iphone") != -1 or uagent.lower().find("ipod") != -1 or uagent.lower().find("blackberry") != -1 or uagent.lower().find("mobile") != -1:
 				request.setHeader("Location", "/mobile/")
 				request.setResponseCode(http.FOUND)
 				return ""

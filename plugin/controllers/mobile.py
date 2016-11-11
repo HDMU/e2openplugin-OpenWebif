@@ -12,6 +12,7 @@ from base import BaseController
 from models.movies import getMovieList
 from models.timers import getTimers
 from models.services import getBouquets, getChannels, getChannelEpg, getEvent, getPicon
+from models.info import getTranscodingSupport
 from urllib import quote
 from time import localtime, strftime
 
@@ -42,7 +43,9 @@ class MobileController(BaseController):
 			stype = request.args["stype"][0]
 		if "id" in request.args.keys():
 			idbouquet = request.args["id"][0]
-		return getChannels(idbouquet, stype)
+		channels = getChannels(idbouquet, stype)
+		channels['transcoding'] = getTranscodingSupport()
+		return channels
 
 	def P_channelinfo(self, request):
 		channelinfo = {}
@@ -79,9 +82,6 @@ class MobileController(BaseController):
 			# Make sure at least some basic channel info gets returned when there is no EPG
 			return { "channelinfo": channelinfo, "channelepg": None }
 
-	def P_channelzap(self, request):
-		return self.P_channelinfo(request)
-
 	def P_eventview(self, request):
 		event = {}
 		event['sref'] = ""
@@ -109,9 +109,6 @@ class MobileController(BaseController):
 
 		return { "event": event }
 
-	def P_timeradded(self, request):
-		return self.P_eventview(request)
-
 	def P_satfinder(self, request):
 		return {}
 
@@ -123,6 +120,7 @@ class MobileController(BaseController):
 			movies = getMovieList(request.args["dirname"][0])
 		else:
 			movies = getMovieList()
+		movies['transcoding'] = getTranscodingSupport()
 		return movies
 		
 	def P_about(self, request):

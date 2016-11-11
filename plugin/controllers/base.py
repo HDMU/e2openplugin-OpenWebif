@@ -16,8 +16,9 @@ from twisted.web import server, http, static, resource, error
 from Cheetah.Template import Template
 
 from models.info import getInfo, getBasePath, getPublicPath, getViewsPath
-from models.config import getCollapsedMenus, getRemoteGrabScreenshot, getZapStream, getEPGSearchType, getConfigsSections, getShowName, getCustomName, getBoxName
+from models.config import getCollapsedMenus, getRemoteGrabScreenshot, getEPGSearchType, getConfigsSections, getShowName, getCustomName, getBoxName
 
+import os
 import imp
 import sys
 import json
@@ -25,6 +26,17 @@ import gzip
 import cStringIO
 
 from enigma import eEPGCache
+
+def new_getRequestHostname(self):
+	host = self.getHeader(b'host')
+	if host:
+		if host[0]=='[':
+			return host.split(']',1)[0] + "]"
+		return host.split(':', 1)[0].encode('ascii')
+	return self.getHost().host.encode('ascii')
+
+http.Request.getRequestHostname = new_getRequestHostname
+
 
 try:
 	from boxbranding import getBoxType, getMachineName
@@ -158,7 +170,7 @@ class BaseController(resource.Resource):
 					self.error404(request)
 				else:
 					if self.withMainTemplate:
-						args = self.prepareMainTemplate()
+						args = self.prepareMainTemplate(request)
 						args["content"] = out
 						nout = self.loadTemplate("main", "main", args)
 						if nout:
@@ -195,12 +207,32 @@ class BaseController(resource.Resource):
 
 		return server.NOT_DONE_YET
 
-	def prepareMainTemplate(self):
+	def oscamconfPath(self):
+		# Find and parse running oscam
+		opath = None
+		owebif = None
+		oport = None
+		if fileExists("/tmp/.oscam/oscam.version"):
+			data = open("/tmp/.oscam/oscam.version", "r").readlines()
+			for i in data:
+				if "configdir:" in i.lower():
+					opath = i.split(":")[1].strip() + "/oscam.conf"
+				elif "web interface support:" in i.lower():
+					owebif = i.split(":")[1].strip()
+				elif "webifport:" in i.lower():
+					oport = i.split(":")[1].strip()
+				else:
+					continue
+		if owebif == "yes" and oport is not "0":
+			return opath
+		else:
+			return None
+
+	def prepareMainTemplate(self, request):
 		# here will be generated the dictionary for the main template
 		ret = getCollapsedMenus()
 		ret['remotegrabscreenshot'] = getRemoteGrabScreenshot()['remotegrabscreenshot']
 		ret['configsections'] = getConfigsSections()['sections']
-		ret['zapstream'] = getZapStream()['zapstream']
 		ret['showname'] = getShowName()['showname']
 		ret['customname'] = getCustomName()['customname']
 		ret['boxname'] = getBoxName()['boxname']
@@ -219,35 +251,56 @@ class BaseController(resource.Resource):
 		ret['epgsearchtype'] = getEPGSearchType()['epgsearchtype']
 		extras = []
 		extras.append({ 'key': 'ajax/settings','description': _("Settings")})
+		from Components.Network import iNetwork
+		ifaces = iNetwork.getConfiguredAdapters()
+		if len(ifaces):
+			ip_list = iNetwork.getAdapterAttribute(ifaces[0], "ip") # use only the first configured interface
+			ip = "%d.%d.%d.%d" % (ip_list[0], ip_list[1], ip_list[2], ip_list[3])
+
 		if fileExists(resolveFilename(SCOPE_PLUGINS, "Extensions/LCD4linux/WebSite.pyo")):
 			lcd4linux_key = "lcd4linux/config"
 			if fileExists(resolveFilename(SCOPE_PLUGINS, "Extensions/WebInterface/plugin.pyo")):
-				from Components.Network import iNetwork
-				ifaces = iNetwork.getConfiguredAdapters()
-				if len(ifaces):
-					ip_list = iNetwork.getAdapterAttribute(ifaces[0], "ip") # use only the first configured interface
-					ip = "%d.%d.%d.%d" % (ip_list[0], ip_list[1], ip_list[2], ip_list[3])
 				try:
 					lcd4linux_port = "http://" + ip + ":" + str(config.plugins.Webinterface.http.port.value) + "/"
 					lcd4linux_key = lcd4linux_port + 'lcd4linux/config'
 				except KeyError:
 					lcd4linux_key = None
 			if lcd4linux_key:
-				extras.append({ 'key': lcd4linux_key, 'description': _("LCD4Linux Setup")})
-		
+				extras.append({ 'key': lcd4linux_key, 'description': _("LCD4Linux Setup") , 'nw':'1'})
+
+		self.oscamconf = self.oscamconfPath()
+		if self.oscamconf is not None:
+			data = open(self.oscamconf, "r").readlines()
+			proto = "http"
+			port = None
+			for i in data:
+				if "httpport" in i.lower():
+					port = i.split("=")[1].strip()
+					if port[0] == '+':
+						proto = "https"
+						port = port[1:]
+			if port is not None:
+				url = "%s://%s:%s" % (proto, request.getRequestHostname(), port)
+				extras.append({ 'key': url, 'description': _("OSCam Webinterface"), 'nw':'1'})
+
 		try:
 			from Plugins.Extensions.AutoTimer.AutoTimer import AutoTimer
 			extras.append({ 'key': 'ajax/at','description': _('AutoTimer')})
 		except ImportError:
 			pass
+
 		if fileExists(resolveFilename(SCOPE_PLUGINS, "Extensions/OpenWebif/controllers/views/ajax/bqe.tmpl")):
 			extras.append({ 'key': 'ajax/bqe','description': _('BouquetEditor')})
-		
+
 		try:
 			from Plugins.Extensions.EPGRefresh.EPGRefresh import epgrefresh
 			extras.append({ 'key': 'ajax/epgr','description': _('EPGRefresh')})
 		except ImportError:
 			pass
-		ret['extras'] = extras
 
+		ret['extras'] = extras
+		if config.OpenWebif.webcache.theme.value:
+			ret['theme'] = config.OpenWebif.webcache.theme.value
+		else:
+			ret['theme'] = 'original'
 		return ret
