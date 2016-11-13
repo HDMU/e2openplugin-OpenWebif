@@ -41,7 +41,7 @@ import sys
 import time
 import string
 
-OPENWEBIFVER = "OWIF 1.0.2"
+OPENWEBIFVER = "OWIF 1.0.3"
 
 STATICBOXINFO = None
 
@@ -87,13 +87,12 @@ def getIPv4Method(iface):
 	return ipv4method
 
 def getLinkSpeed(iface):
-	speed = _("unknown")
 	try:
-		speed = os.popen('ethtool ' + iface + ' | grep Speed: | awk \'{ print $2 }\'').read().strip()
+		with open('/sys/class/net/' + iface + '/speed','r') as f:
+			speed = f.read().strip()
 	except:
-		pass
-	speed = str(speed)
-	speed = speed.replace("Mb/s"," MBit/s")
+		speed = _("unknown")
+	speed = str(speed) + " MBit/s"
 	speed = speed.replace("10000 MBit/s","10 GBit/s")
 	speed = speed.replace("1000 MBit/s","1 GBit/s")
 	return speed
@@ -101,10 +100,10 @@ def getLinkSpeed(iface):
 def getNICChipSet(iface):
 	nic = _("unknown")
 	try:
-		nic = os.popen('ethtool -i ' + iface + ' | grep driver: | awk \'{ print $2 }\'').read().strip()
+		nic = os.path.realpath('/sys/class/net/' + iface + '/device/driver').split('/')[-1]
+		nic = str(nic)
 	except:
 		pass
-	nic = str(nic)
 	return nic
 
 def getFriendlyNICChipSet(iface):

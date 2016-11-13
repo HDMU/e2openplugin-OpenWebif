@@ -22,7 +22,7 @@ from models.locations import getLocations, getCurrentLocation, addLocation, remo
 from models.timers import getTimers, addTimer, addTimerByEventId, editTimer, removeTimer, toggleTimerStatus, cleanupTimer, writeTimerList, recordNow, tvbrowser, getSleepTimer, setSleepTimer, getPowerTimer, setPowerTimer, getVPSChannels
 from models.message import sendMessage, getMessageAnswer
 from models.movies import getMovieList, removeMovie, getMovieTags, moveMovie, renameMovie, getAllMovies
-from models.config import getSettings, addCollapsedMenu, removeCollapsedMenu, setRemoteGrabScreenshot, setZapStream, saveConfig, getZapStream, setEPGSearchType, setShowChPicon
+from models.config import getSettings, addCollapsedMenu, removeCollapsedMenu, setZapStream, saveConfig, getZapStream, setShowChPicon
 from models.stream import getStream, getTS, getStreamSubservices
 from models.servicelist import reloadServicesLists
 from models.mediaplayer import mediaPlayerAdd, mediaPlayerRemove, mediaPlayerPlay, mediaPlayerCommand, mediaPlayerCurrent, mediaPlayerList, mediaPlayerLoad, mediaPlayerSave, mediaPlayerFindFile
@@ -311,56 +311,25 @@ class WebController(BaseController):
 		return getMessageAnswer()
 
 	def P_movielist(self, request):
-		tag = None
-		if "tag" in request.args.keys():
-			tag = request.args["tag"][0]
-
-		dirname = None
-		if "dirname" in request.args.keys():
-			dirname = request.args["dirname"][0]
 		self.isGZ=True
-		return getMovieList(dirname, tag, request.args)
+		return getMovieList(request.args)
 	
 	def P_fullmovielist(self, request):
 		self.isGZ=True
 		return getAllMovies()
 
 	def P_movielisthtml(self, request):
-		tag = None
-		if "tag" in request.args.keys():
-			tag = request.args["tag"][0]
-		
-		dirname = None
-		if "dirname" in request.args.keys():
-			dirname = request.args["dirname"][0]
-		
 		request.setHeader("content-type", "text/html")
-		return getMovieList(dirname, tag)
+		return getMovieList(request.args)
 
 	def P_movielistm3u(self, request):
-		tag = None
-		if "tag" in request.args.keys():
-			tag = request.args["tag"][0]
-
-		dirname = None
-		if "dirname" in request.args.keys():
-			dirname = request.args["dirname"][0]
-
 		request.setHeader('Content-Type', 'application/text')
-		movielist = getMovieList(dirname, tag)
+		movielist = getMovieList(request.args)
 		movielist["host"] = "%s://%s:%s" % (whoami(request)['proto'], request.getRequestHostname(), whoami(request)['port'])
 		return movielist
 
 	def P_movielistrss(self, request):
-		tag = None
-		if "tag" in request.args.keys():
-			tag = request.args["tag"][0]
-
-		dirname = None
-		if "dirname" in request.args.keys():
-			dirname = request.args["dirname"][0]
-
-		movielist = getMovieList(dirname, tag)
+		movielist = getMovieList(request.args)
 		movielist["host"] = "%s://%s:%s" % (whoami(request)['proto'], request.getRequestHostname(), whoami(request)['port'])
 		return movielist
 
@@ -782,7 +751,10 @@ class WebController(BaseController):
 			except Exception, e:
 				pass
 		self.isGZ=True
-		return getSearchEpg(request.args["search"][0], endtime)
+		fulldesc=False
+		if "full" in request.args.keys():
+			fulldesc=True
+		return getSearchEpg(request.args["search"][0], endtime,fulldesc)
 
 	def P_epgsearchrss(self, request):
 		res = self.testMandatoryArguments(request, ["search"])
@@ -948,12 +920,6 @@ class WebController(BaseController):
 			return res
 		return removeCollapsedMenu(request.args["name"][0])
 
-	def P_remotegrabscreenshot(self, request):
-		res = self.testMandatoryArguments(request, ["checked"])
-		if res:
-			return res
-		return setRemoteGrabScreenshot(request.args["checked"][0] == "true")
-
 	def P_zapstream(self, request):
 		res = self.testMandatoryArguments(request, ["checked"])
 		if res:
@@ -965,12 +931,6 @@ class WebController(BaseController):
 		if res:
 			return res
 		return setShowChPicon(request.args["checked"][0] == "true")
-
-	def P_epgsearchtype(self, request):
-		res = self.testMandatoryArguments(request, ["checked"])
-		if res:
-			return res
-		return setEPGSearchType(request.args["checked"][0] == "true")
 
 	def P_streamm3u(self,request):
 		self.isCustom = True

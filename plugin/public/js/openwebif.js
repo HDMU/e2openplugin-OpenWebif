@@ -1,6 +1,6 @@
 //******************************************************************************
 //* openwebif.js: openwebif base module
-//* Version 2.3
+//* Version 2.6
 //******************************************************************************
 //* Copyright (C) 2011-2014 E2OpenPlugins
 //*
@@ -10,6 +10,9 @@
 //* V 2.1 - support timer conflicts / fix IE cache issue
 //* V 2.2 - remove sync requests
 //* V 2.3 - prepare web tv / better timer conflicts
+//* V 2.4 - improve movie sort
+//* V 2.5 - improve settings
+//* V 2.6 - getallservices public function
 //*
 //* Authors: skaman <sandro # skanetwork.com>
 //* 		 meo
@@ -422,7 +425,8 @@ function open_epg_dialog(sRef,Name) {
 
 function open_epg_search_dialog() {
 	var spar = $("#epgSearch").val();
-	var url = "ajax/epgdialog?sstr=" + encodeURIComponent(spar);
+	var full = (GetLSValue('epgsearchtype',false)=='true') ? '&full=1' : ''
+	var url = "ajax/epgdialog?sstr=" + encodeURIComponent(spar) + full;
 	$("#epgSearch").val("");
 	
 	var w = $(window).width() -100;
@@ -430,7 +434,7 @@ function open_epg_search_dialog() {
 	
 	var buttons = {}
 	buttons[tstr_close] = function() { $(this).dialog("close");};
-	buttons[tstr_open_in_new_window] = function() { $(this).dialog("close"); open_epg_search_pop(spar);};
+	buttons[tstr_open_in_new_window] = function() { $(this).dialog("close"); open_epg_search_pop(spar,full);};
 	
 	load_dm_spinner(url,tstr_epgsearch,w,h,buttons);
 }
@@ -444,8 +448,8 @@ function _epg_pop(url) {
 	});	
 }
 
-function open_epg_search_pop(spar) {
-	_epg_pop("ajax/epgpop?sstr=" + encodeURIComponent(spar));
+function open_epg_search_pop(spar,full) {
+	_epg_pop("ajax/epgpop?sstr=" + encodeURIComponent(spar) + full);
 }
 
 function open_epg_pop(sRef) {
@@ -643,7 +647,6 @@ function deleteMovie(sRef, divid, title) {
 		$('#' + divid).remove();
 	}
 }
-
 
 function playRecording(sRef) {
 	var sr = sRef.replace(/-/g,'%2D').replace(/_/g,'%5F').replace(/\//g,'%2F');
@@ -857,17 +860,20 @@ function toggleMenu(name) {
 
 // keep checkboxes syncronized
 $(function() {
-	$("input[name=remotegrabscreen]").click(function(evt) {
-		$('input[name=remotegrabscreen]').attr('checked', evt.currentTarget.checked);
-		webapi_execute("/api/remotegrabscreenshot?checked=" + evt.currentTarget.checked);
+	$('.remotegrabscreen').click(function(evt) {
+		$('.remotegrabscreen').prop('checked', evt.currentTarget.checked);
+		SetLSValue('remotegrabscreen',evt.currentTarget.checked);
 	});
-});
 
-$(function() {
-	$("input[name=epgsearchtype]").click(function(evt) {
-		$('input[name=epgsearchtype]').attr('checked', evt.currentTarget.checked);
-		webapi_execute("/api/epgsearchtype?checked=" + evt.currentTarget.checked);
+	$('input[name=epgsearchtype]').click(function(evt) {
+		$('input[name=epgsearchtype]').prop('checked', evt.currentTarget.checked);
+		SetLSValue('epgsearchtype',evt.currentTarget.checked);
 	});
+	if (typeof $('input[name=epgsearchtype]') !== 'undefined')
+		$('input[name=epgsearchtype]').prop('checked',(GetLSValue('epgsearchtype',false)=='true'));
+	else
+		SetLSValue('epgsearchtype',false);
+	$('.remotegrabscreen').prop('checked',(GetLSValue('remotegrabscreen',true)=='true'));
 });
 
 $(window).keydown(function(evt) {
@@ -881,7 +887,8 @@ $(window).keydown(function(evt) {
 });
 
 function callScreenShot(){
-	if ($('input[name=remotegrabscreen]').is(':checked'))
+
+	if(GetLSValue('remotegrabscreen',true)=='true')
 	{
 		if (lastcontenturl == 'ajax/screenshot') {
 			grabScreenshot(screenshotMode);
@@ -1601,6 +1608,7 @@ var MLHelper;
 
 				$("#moviesort").iconselectmenu({change: function(event, ui) {
 					MLHelper.SortMovies(ui.item.value);
+					MLHelper.ChangeSort(ui.item.value);
 					}
 				}).addClass("ui-menu-icons");
 				
@@ -1621,7 +1629,7 @@ var MLHelper;
 							var img = $( "<span class='sortimg'>").append (
 								$( "<i>", { "class": "fa " + simg })
 								)
-							$(".ui-selectmenu-text").prepend(img);
+							$("#moviesort-button .ui-selectmenu-text").prepend(img);
 						}
 					}
 				});
@@ -1629,7 +1637,7 @@ var MLHelper;
 			,SortMovies: function(idx)
 			{
 				var sorted = self._movies.slice(0);
-			
+
 				if(idx=='name')
 				{
 					// sort by name
@@ -1638,42 +1646,25 @@ var MLHelper;
 						var y = b.title.toLowerCase();
 						return x < y ? -1 : x > y ? 1 : 0;
 					});
-				
 				}
-			
+				// sort by name desc
 				if(idx=='named')
 				{
-					// sort by name desc
-					sorted.sort(function(a,b) {
-						var x = b.title.toLowerCase();
-						var y = a.title.toLowerCase();
-						return x < y ? -1 : x > y ? 1 : 0;
-					});
-						
-				
+					sorted.sort(function(a,b){var x = b.title.toLowerCase();var y = a.title.toLowerCase();return x < y ? -1 : x > y ? 1 : 0;});
 				}
-			
 				if(idx=='date')
 				{
-				
-						
-					// sort by date desc
-					sorted.sort(function(a,b) {
-						return b.start - a.start;
-					});
-				
-				
-				}
-			
-				if(idx=='dated')
-				{
-					
 					// sort by date
 					sorted.sort(function(a,b) {
 						return a.start - b.start;
 					});
-				
-				
+				}
+				if(idx=='dated')
+				{
+					// sort by date desc
+					sorted.sort(function(a,b) {
+						return b.start - a.start;
+					});
 				}
 				
 				$('#movies').empty();
@@ -1684,8 +1675,9 @@ var MLHelper;
 					);
 				}
 				
-				self.ChangeSort(idx);
 				self.SetSortImg();
+				
+				return sorted;
 			
 			},
 			ChangeSort : function(nsort)
@@ -1715,6 +1707,10 @@ var MLHelper;
 				);
 				});
 			
+			},
+			SetMovies :function(mv)
+			{
+				self._movies = mv.slice();
 			}
 		
 		}
@@ -1794,3 +1790,47 @@ function SetSpinner()
 	loadspinner = "<div id='spinner'><div class='fa " + spin + " fa-spin'></div></div>";
 }
 
+function isInArray(array, search) { return (array.indexOf(search) >= 0) ? true : false; }
+
+function GetAllServices(callback)
+{
+	if (typeof callback === 'undefined')
+		return;
+
+	var date = new Date();
+	date = date.getFullYear()+"-"+(date.getMonth()+1)+"-"+date.getDate();
+
+	$.ajax({
+		url: '/api/getallservices',
+		dataType: 'json',
+		data: { date: date },
+		success: function ( data ) {
+			var bqs = data['services'];
+			var options = "";
+			var boptions = "";
+			var refs = [];
+			$.each( bqs, function( key, val ) {
+				var ref = val['servicereference']
+				var name = val['servicename'];
+				boptions += "<option value='" + encodeURIComponent(ref) + "'>" + val['servicename'] + "</option>";
+				var slist = val['subservices'];
+				var items = [];
+				$.each( slist, function( key, val ) {
+					var ref = val['servicereference']
+					if (!isInArray(refs,ref)) {
+						refs.push(ref);
+						if(ref.substring(0, 4) == "1:0:")
+							items.push( "<option value='" + ref + "'>" + val['servicename'] + "</option>" );
+						if(ref.substring(0, 7) == "1:134:1")
+							items.push( "<option value='" + encodeURIComponent(ref) + "'>" + val['servicename'] + "</option>" );
+					}
+				});
+				if (items.length>0) {
+					options += "<optgroup label='" + name + "'>" + items.join("") + "</optgroup>";
+				}
+			});
+			callback(options,boptions);
+		}
+	});
+
+}

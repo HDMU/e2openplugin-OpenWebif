@@ -97,7 +97,10 @@ class AjaxController(BaseController):
 			ev = getChannelEpg(request.args["sref"][0])
 			events = ev["events"]
 		elif "sstr" in request.args.keys():
-			ev = getSearchEpg(request.args["sstr"][0])
+			fulldesc = False
+			if "full" in request.args.keys():
+				fulldesc=True
+			ev = getSearchEpg(request.args["sstr"][0],None,fulldesc)
 			events = ev["events"]
 		at = False
 		if len(events) > 0: 
@@ -141,10 +144,7 @@ class AjaxController(BaseController):
 		return {}
 
 	def P_movies(self, request):
-		if "dirname" in request.args.keys():
-			movies = getMovieList(request.args["dirname"][0])
-		else:
-			movies = getMovieList()
+		movies = getMovieList(request.args)
 		movies['transcoding'] = getTranscodingSupport()
 
 		sorttype = config.OpenWebif.webcache.moviesort.value
