@@ -90,18 +90,6 @@ class AjaxController(BaseController):
 		info["owiver"] = getOpenWebifVer()
 		return { "info": info }
 	
-	def P_boxinfo(self, request):
-		info = getInfo(self.session)
-		type = getBoxType()
-
-		if fileExists(getPublicPath("/images/boxes/"+type+".png")):
-			info["boximage"] = type+".png"
-		elif fileExists(getPublicPath("/images/boxes/"+type+".jpg")):
-			info["boximage"] = type+".jpg"
-		else:
-			info["boximage"] = "unknown.png"
-		return info
-
 	def P_epgpop(self, request):
 		events=[]
 		timers=[]
