@@ -489,7 +489,7 @@ def getAllInfo():
 
 	if fileExists("/etc/.box"):
 		distro = "HDMU"
-		oever = "private"
+		oever = "Up to date"
 	elif fileExists("/etc/bhversion"):
 		distro = "Black Hole"
 		f = open("/etc/bhversion",'r')
