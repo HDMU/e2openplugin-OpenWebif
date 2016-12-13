@@ -452,6 +452,8 @@ def getAllInfo():
 		remote = "xcombo"
 	elif procmodel == "vg5000":
 		remote = "sf3038"
+	elif procmodel in ("sf208", "sf228"):
+		remote = "sf2x8"
 	elif procmodel == "yh7362":
 		remote = "sf98"
 	elif procmodel.startswith("atemio"):
