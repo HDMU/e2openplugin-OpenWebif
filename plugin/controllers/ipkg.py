@@ -11,16 +11,20 @@
 
 from enigma import eConsoleAppContainer
 from twisted.web import static, server, resource, http
-from os import path, popen, remove
+from os import path, popen, remove, stat
 
 import json
 import gzip
 import cStringIO
 
-class IpkgController(resource.Resource):
+from base import BaseController
 
-	def __init__(self, path = ""):
-		resource.Resource.__init__(self)
+class IpkgController(BaseController):
+
+	def __init__(self, session, path = ""):
+		BaseController.__init__(self, path)
+		self.session = session
+		self.putChild('upload', IPKGUpload(session))
 
 	def compressBuf(self, buf):
 		zbuf = cStringIO.StringIO()
@@ -50,6 +54,21 @@ class IpkgController(resource.Resource):
 				return self.CallOPKListGZ(request)
 			elif action in ( "listall" ):
 				return self.CallOPKListAll(request)
+			elif action in ( "tmp" ):
+				import glob
+				tmpfiles = glob.glob('/tmp/*.ipk')
+				ipks = []
+				for tmpfile in tmpfiles:
+					ipks.append({
+						'path': tmpfile,
+						'name' : (tmpfile.split('/')[-1]),
+						'size' : stat(tmpfile).st_size,
+						'date' : stat(tmpfile).st_mtime,
+					})
+				request.setHeader("content-type", "text/plain")
+				request.write(json.dumps({'ipkfiles' : ipks}, encoding="ISO-8859-1"))
+				request.finish()
+				return server.NOT_DONE_YET
 			else:
 				return ShowError(request,"Unknown command: "+ self.command)
 		else:
@@ -100,10 +119,9 @@ class IpkgController(resource.Resource):
 		return server.NOT_DONE_YET
 
 	def getPackages(self):
-		from os import popen as os_popen
 		map = {}
 		try:
-			out = os_popen("opkg list")
+			out = popen("opkg list")
 			for line in out:
 				if line[0] == " ":
 					continue
@@ -115,12 +133,12 @@ class IpkgController(resource.Resource):
 					("" if len(package) < 3 else package[2][:-1]),
 					 "0" , 
 					 "0"] } )
-			out = os_popen("opkg list-installed")
+			out = popen("opkg list-installed")
 			for line in out:
 				package = line.split(' - ')
 				if map.has_key(package[0]):
 					map[package[0]][2] = "1"
-			out = os_popen("opkg list-upgradable")
+			out = popen("opkg list-upgradable")
 			for line in out:
 				package = line.split(' - ')
 				if map.has_key(package[0]):
@@ -160,6 +178,7 @@ class IpkgController(resource.Resource):
 			nresult = nresult.replace("\n "," ")
 			if self.format == "json":
 				data = []
+				nresult=unicode(nresult, errors='ignore')
 				data.append({"result": True,"packages": nresult.split("\n")})
 				self.request.setHeader("content-type", "text/plain")
 				self.request.write(json.dumps(data))
@@ -197,3 +216,44 @@ class IpkgController(resource.Resource):
 		request.write(html)
 		request.finish()
 		return server.NOT_DONE_YET
+
+class IPKGUpload(resource.Resource):
+	def __init__(self, session):
+		self.session = session
+		resource.Resource.__init__(self)
+
+	def mbasename(self, fname):
+		l = fname.split('/')
+		win = l[len(l)-1]
+		l2 = win.split('\\')
+		return l2[len(l2)-1]
+
+	def render_POST(self, request):
+		request.setResponseCode(http.OK)
+		request.setHeader('content-type', 'text/plain')
+		request.setHeader('charset', 'UTF-8')
+		content = request.args['rfile'][0]
+		filename = self.mbasename(request.args['filename'][0])
+
+		if not content:
+			result = [False,_('Error upload File')]
+		else:
+			if not filename.endswith(".ipk"):
+				result = [False,_('wrong filetype')]
+			else:
+				import os
+				FN = "/tmp/" + filename
+				fileh = os.open(FN, os.O_WRONLY|os.O_CREAT )
+				bytes = 0
+				if fileh:
+					bytes = os.write(fileh, content)
+					os.close(fileh)
+				if bytes <= 0:
+					try:
+						os.remove(FN)
+					except OSError, oe:
+						pass
+					result = [False,_('Error writing File')]
+				else:
+					result = [True,FN]
+		return json.dumps({"Result": result })

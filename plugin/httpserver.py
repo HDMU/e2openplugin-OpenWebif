@@ -20,16 +20,54 @@ from twisted.internet.error import CannotListenError
 from controllers.root import RootController
 from sslcertificate import SSLCertificateGenerator, KEY_FILE, CERT_FILE, CA_FILE
 from socket import gethostname, has_ipv6
-
 from OpenSSL import SSL
 from twisted.internet.protocol import Factory, Protocol
+from Components.Network import iNetwork
 
 import os
 import imp
 import re
+import ipaddress
 
 global listener, server_to_stop, site
 listener = []
+
+def getAllNetworks():
+	tempaddrs = []
+	# Get all IP networks
+	if fileExists('/proc/net/if_inet6'):
+		if has_ipv6 and version.major >= 12:
+			proc = '/proc/net/if_inet6'
+			for line in file(proc).readlines():
+				# Skip localhost
+				if line.startswith('00000000000000000000000000000001'):
+					continue
+
+				tmpaddr = ""
+				tmp = line.split()
+				tmpaddr=str(ipaddress.ip_address(int(tmp[0], 16)))
+				if tmp[2].lower() != "ff":
+					tmpaddr = "%s/%s" % (tmpaddr, int(tmp[2].lower(), 16))
+					tmpaddr = str(ipaddress.IPv6Network(unicode(tmpaddr), strict=False))
+
+				tempaddrs.append(tmpaddr)
+	# Crappy legacy IPv4 has no proc entry with clean addresses
+	ifaces = iNetwork.getConfiguredAdapters()
+	for iface in ifaces:
+		# IPv4 and old fashioned netmask are served as silly arrays
+		crap = iNetwork.getAdapterAttribute(iface, "ip")
+		if crap is None or len(crap) != 4:
+			continue
+		ip = '.'.join(str(x) for x in crap)
+		netmask = str(sum([bin(int(x)).count('1') for x in iNetwork.getAdapterAttribute(iface, "netmask")]))
+		ip = ip + "/" + netmask
+		tmpaddr = str(ipaddress.IPv4Network(unicode(ip), strict=False))
+		tempaddrs.append(tmpaddr)
+
+	if tempaddrs == []:
+		return None
+	else:
+		return tempaddrs
 
 def verifyCallback(connection, x509, errnum, errdepth, ok):
 	if not ok:
@@ -125,8 +163,7 @@ def HttpdStart(session):
 
 		temproot = buildRootTree(session)
 		root = temproot
-		if config.OpenWebif.auth.value == True:
-			root = AuthResource(session, root)
+		root = AuthResource(session, root)
 		site = server.Site(root)
 
 		# start http webserver on configured port
@@ -177,8 +214,7 @@ def HttpdStart(session):
 					ctx.load_verify_locations(CA_FILE)
 
 				sslroot = temproot
-				if config.OpenWebif.https_auth.value == True:
-					sslroot = AuthResource(session, sslroot)
+				sslroot = AuthResource(session, sslroot)
 				sslsite = server.Site(sslroot)
 
 				if has_ipv6 and fileExists('/proc/net/if_inet6') and version.major >= 12:
@@ -224,6 +260,14 @@ class AuthResource(resource.Resource):
 		resource.Resource.__init__(self)
 		self.resource = root
 
+	def noShell(self, request):
+		user = request.getUser()
+		if fileExists('/etc/passwd'):
+			for line in file('/etc/passwd').readlines():
+				line = line.strip()
+				if line.startswith(user + ":") and line.endswith(":/bin/false"):
+					return True
+		return False
 
 	def render(self, request):
 		host = request.getHost().host
@@ -239,47 +283,70 @@ class AuthResource(resource.Resource):
 
 	def getChildWithDefault(self, path, request):
 		global site
-		url = str(request.uri)
-		sid = None
-		if url.startswith('/web/stream?') or url.startswith('/file?'):
-			m = re.search('(?:\?|&)sid=(.+?)(?:$|&|\?)', url)
-			if m:
-				sid = str(m.groups()[0])
-				# Strip sid from URL:
-				url = re.sub('(?:\?|&)sid=.+?$', '', url)
-				url = re.sub('(?:\?|&)sid=.+?(&|\?)', '\1', url)
-				# Strip sid from args:
-				args = request.args
-				newargs = {}
-				for key, values in args.items():
-					newvalues=[]
-					for value in values:
-						value = re.sub('(?:\?|&)sid=.+?$', '', value)
-						value = re.sub('(?:\?|&)sid=.+?(&|\?)', '\1', value)
-						newvalues.append(value)
-					newargs[key] = newvalues
-				request.args = newargs
-				request.uri = url
-				try:
-					oldsession = site.getSession(sid).sessionNamespaces
-					if "logged" in oldsession.keys() and oldsession["logged"]:
-						session = request.getSession().sessionNamespaces
-						session["logged"] = True
-				except:
-					pass
 		session = request.getSession().sessionNamespaces
 		host = request.getHost().host
+		peer = request.getClientIP()
+		if peer is None:
+			peer = request.transport.socket.getpeername()[0]
 
-		if ((host == "localhost" or host == "127.0.0.1" or host == "::ffff:127.0.0.1") and not config.OpenWebif.auth_for_streaming.value) or request.uri == "/web/getipv6":
+		if peer.startswith("::ffff:"):
+			peer = peer.replace("::ffff:","")
+
+		if peer.startswith("fe80::") and "%" in peer:
+			peer = peer.split ("%")[0]
+
+		# Handle all conditions where auth may be skipped/disabled
+
+		# #1: Auth is disabled and access is from local network
+		if (not request.isSecure() and config.OpenWebif.auth.value == False) or (request.isSecure() and config.OpenWebif.https_auth.value == False):
+			networks = getAllNetworks()
+			if networks is not None:
+				for network in networks:
+					if ipaddress.ip_address(unicode(peer)) in ipaddress.ip_network(unicode(network), strict=False):
+						return self.resource.getChildWithDefault(path, request)
+
+		# #2: Auth is disabled and access is from private address space (Usually VPN) and access for VPNs has been granted
+		if (not request.isSecure() and config.OpenWebif.auth.value == False) or (request.isSecure() and config.OpenWebif.https_auth.value == False):
+			if config.OpenWebif.vpn_access.value == True and ipaddress.ip_address(unicode(peer)).is_private:
+				return self.resource.getChildWithDefault(path, request)
+
+		# #3: Access is from localhost and streaming auth is disabled - or - we only want to see our IPv6 (For inadyn-mt)
+		if ((host == "localhost" or host == "127.0.0.1" or host == "::ffff:127.0.0.1" or host == "::1") and not config.OpenWebif.auth_for_streaming.value) or request.uri == "/web/getipv6":
 			return self.resource.getChildWithDefault(path, request)
+
+		# #4: Web TV is accessing streams and "auths" by parent session id
+		if request.getUser() == "-sid":
+			sid = str(request.getPassword())
+			try:
+				oldsession = site.getSession(sid).sessionNamespaces
+				if "logged" in oldsession.keys() and oldsession["logged"]:
+					session = request.getSession().sessionNamespaces
+					session["logged"] = True
+					return self.resource.getChildWithDefault(path, request)
+			except:
+				pass
+
+		# If we get to here, no expection applied
+		# Either block with forbiodden (If auth is disabled) ...
+		if (not request.isSecure() and config.OpenWebif.auth.value == False) or (request.isSecure() and config.OpenWebif.https_auth.value == False):
+			errpage = resource.ErrorPage(http.FORBIDDEN,'Forbidden','403.6 IP address rejected')
+			return errpage
+
+		# ... or auth
 		if "logged" in session.keys() and session["logged"]:
 			return self.resource.getChildWithDefault(path, request)
+
 		if self.login(request.getUser(), request.getPassword(), request.transport.socket.getpeername()[0]) == False:
 			request.setHeader('WWW-authenticate', 'Basic realm="%s"' % ("OpenWebif"))
 			errpage = resource.ErrorPage(http.UNAUTHORIZED,"Unauthorized","401 Authentication required")
 			return errpage
 		else:
 			session["logged"] = True
+			session["user"] = request.getUser()
+			session["pwd"] = None
+			noshell = self.noShell(request)
+			if noshell is True:
+				session["pwd"] = request.getPassword()
 			return self.resource.getChildWithDefault(path, request)
 
 	def login(self, user, passwd, peer):

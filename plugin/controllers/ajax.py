@@ -20,6 +20,7 @@ from base import BaseController
 from time import mktime, localtime
 from models.locations import getLocations
 from twisted.web.resource import Resource
+import os
 
 try:
 	from boxbranding import getBoxType, getMachineName, getMachineBrand, getMachineBuild
@@ -30,6 +31,13 @@ class GetSession(Resource):
 	def GetSID(self, request):
 		sid = request.getSession().uid
 		return sid
+
+	def GetAuth(self, request):
+		session = request.getSession().sessionNamespaces
+		if "pwd" in session.keys() and session["pwd"] is not None:
+			return (session["user"],session["pwd"])
+		else:
+			return None
 
 class AjaxController(BaseController):
 	def __init__(self, session, path = ""):
@@ -168,9 +176,6 @@ class AjaxController(BaseController):
 		movies['sort'] = sorttype
 		return movies
 
-	def P_workinprogress(self, request):
-		return {}
-
 	def P_radio(self, request):
 		return {}
 
@@ -195,7 +200,10 @@ class AjaxController(BaseController):
 		}
 		ret['configsections'] = getConfigsSections()['sections']
 		if config.OpenWebif.webcache.theme.value:
-			ret['themes'] = config.OpenWebif.webcache.theme.choices
+			if os.path.exists(getPublicPath('themes')):
+				ret['themes'] = config.OpenWebif.webcache.theme.choices
+			else:
+				ret['themes'] = ['original','clear']
 			ret['theme'] = config.OpenWebif.webcache.theme.value
 		else:
 			ret['themes'] = []
@@ -205,7 +213,13 @@ class AjaxController(BaseController):
 		return ret
 
 	def P_multiepg(self, request):
-		bouq = getBouquets("tv")
+		epgmode = "tv"
+		if "epgmode" in request.args.keys():
+			epgmode = request.args["epgmode"][0]
+			if epgmode not in ["tv", "radio"]:
+				epgmode = "tv"
+				
+		bouq = getBouquets(epgmode)
 		if "bref" not in request.args.keys():
 			bref = bouq['bouquets'][0][0]
 		else:
@@ -232,6 +246,7 @@ class AjaxController(BaseController):
 		epg['bref'] = bref
 		epg['day'] = day
 		epg['mode'] = mode
+		epg['epgmode'] = epgmode
 		return epg
 
 	def P_at(self, request):
@@ -265,19 +280,25 @@ class AjaxController(BaseController):
 		return {}
 
 	def P_webtv(self, request):
-		session = GetSession()
-		sid = str(session.GetSID(request))
+		if config.OpenWebif.auth_for_streaming.value:
+			session = GetSession()
+			if session.GetAuth(request) is not None:
+				auth = ':'.join(session.GetAuth(request)) + "@"
+			else:
+				auth = '-sid:' + str(session.GetSID(request)) + "@"
+		else:
+			auth=''
 		vxgenabled = False
-		if fileExists(getPublicPath("/js/media_player.pexe")):
+		if fileExists(getPublicPath("/vxg/media_player.pexe")):
 			vxgenabled = True
 		transcoding = getTranscodingSupport()
 		transcoder_port = 0
 		if transcoding:
 			try:
 				transcoder_port = int(config.plugins.transcodingsetup.port.value)
-				if getMachineBuild() in ('inihdp', 'hd2400', 'et10000','ew7356'):
+				if getMachineBuild() in ('inihdp', 'hd2400', 'et10000','ew7356','formuler1'):
 					transcoder_port = int(config.OpenWebif.streamport.value)
 			except StandardError:
 				transcoder_port = 0
-		return {"transcoder_port" : transcoder_port, "vxgenabled" : vxgenabled, "sid" : sid}
+		return {"transcoder_port" : transcoder_port, "vxgenabled" : vxgenabled, "auth" : auth}
 
