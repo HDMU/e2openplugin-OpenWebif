@@ -340,6 +340,10 @@ def getAllInfo():
 				procmodel = "vg5000"
 			elif tempmodel == "sf98":
 				procmodel = "yh7362"
+			elif tempmodel == "sf228":
+				procmodel = tempmodel
+			elif tempmodel == "sf208":
+				procmodel = tempmodel
 		elif tempmodel.startswith("atemio"):
 			brand = "Atemio"
 			if tempmodel == "atemio6000":
