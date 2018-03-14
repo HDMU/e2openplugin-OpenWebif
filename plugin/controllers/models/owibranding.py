@@ -420,6 +420,8 @@ def getAllInfo():
 		remote = "gigablue"
 	elif procmodel == "gbquadplus":
 		remote = "gbquadplus"
+	elif procmodel == "gbquad4k":
+		remote = "gbquad4k"
 	elif procmodel in ("formuler1", "formuler3", "formuler4"):
 		remote = "formuler1"
 	elif procmodel in ("azboxme", "azboxminime", "me", "minime"):
